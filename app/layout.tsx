@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://ot-shum-do-obraz.goshko-ai.chatgpt.site'),
   title: 'От шум до образ — Как работи AI',
   description:
     'Интерактивно и достъпно обяснение как diffusion моделите превръщат шум в изображения.',
