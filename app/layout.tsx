@@ -12,8 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ['latin', 'cyrillic'],
 });
 
+const deploymentOrigin =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : 'http://localhost:3000');
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ot-shum-do-obraz.goshko-ai.chatgpt.site'),
+  metadataBase: new URL(deploymentOrigin),
   title: 'От шум до образ — Как работи AI',
   description:
     'Интерактивно и достъпно обяснение как diffusion моделите превръщат шум в изображения.',
