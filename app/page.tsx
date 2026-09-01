@@ -982,34 +982,122 @@ function DiffusionLab() {
       : Math.round((step / TOTAL_STEPS) * 1000);
 
   return (
-    <section
-      id="lab"
-      className="scroll-mt-6 rounded-[32px] border border-white/10 bg-[#15162d]/90 p-4 shadow-[0_40px_130px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-6 lg:p-7"
-    >
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <div
-          className="inline-flex rounded-full border border-white/10 bg-white/[0.045] p-1"
-          aria-label="Избери процес"
-        >
-          <button
-            type="button"
-            onClick={() => changeMode('generate')}
-            aria-pressed={mode === 'generate'}
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/55 transition hover:text-white aria-pressed:bg-white aria-pressed:text-[#11122a]"
-          >
-            Генериране
-          </button>
-          <button
-            type="button"
-            onClick={() => changeMode('train')}
-            aria-pressed={mode === 'train'}
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/55 transition hover:text-white aria-pressed:bg-white aria-pressed:text-[#11122a]"
-          >
-            Обучение
-          </button>
+    <div id="lab" className="scroll-mt-6">
+      <div className="mb-10 sm:mb-12">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
+            Двете половини на процеса
+          </p>
+          <p className="hidden text-xs text-white/30 sm:block">Избери откъде да започнеш</p>
         </div>
+        <div className="grid gap-3 sm:grid-cols-2" aria-label="Избери процес">
+          <div className="relative pb-9">
+            <button
+              type="button"
+              onClick={() => changeMode('generate')}
+              aria-pressed={mode === 'generate'}
+              className={`group relative h-full w-full overflow-hidden rounded-[22px] border p-4 text-left transition sm:p-5 ${
+                mode === 'generate'
+                  ? 'border-[#f3a177]/55 bg-[#f3a177]/[0.11] shadow-[0_14px_45px_rgba(240,139,93,0.12)]'
+                  : 'border-white/10 bg-white/[0.025] hover:border-[#f3a177]/25 hover:bg-[#f3a177]/[0.045]'
+              }`}
+            >
+            <span
+              className={`absolute inset-x-0 top-0 h-0.5 transition ${
+                mode === 'generate' ? 'bg-[#f3a177]' : 'bg-transparent'
+              }`}
+            />
+            <span className="flex items-center gap-4">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-2xl transition ${
+                  mode === 'generate'
+                    ? 'bg-[#f3a177] text-[#181026]'
+                    : 'bg-white/5 text-[#f3a177] group-hover:bg-[#f3a177]/10'
+                }`}
+              >
+                <Sparkles className="size-5" aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-lg font-semibold text-white">Генериране</span>
+                <span className="mt-1 block text-xs leading-5 text-white/45">
+                  Как от случаен шум се появява нова картинка
+                </span>
+              </span>
+            </span>
+            {mode === 'generate' && (
+              <span className="absolute right-4 top-4 rounded-full bg-[#f3a177]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#f3a177]">
+                активно
+              </span>
+            )}
+            </button>
+            <span
+              aria-hidden="true"
+              className={`absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-col items-center transition ${
+                mode === 'generate' ? 'text-[#f3a177]' : 'text-white/15'
+              }`}
+            >
+              <span className="h-3 w-px bg-current" />
+              <span className="grid size-6 place-items-center rounded-full border border-current bg-[#111225]">
+                <ArrowDown className="size-3" />
+              </span>
+            </span>
+          </div>
+          <div className="relative pb-9">
+            <button
+              type="button"
+              onClick={() => changeMode('train')}
+              aria-pressed={mode === 'train'}
+              className={`group relative h-full w-full overflow-hidden rounded-[22px] border p-4 text-left transition sm:p-5 ${
+                mode === 'train'
+                  ? 'border-[#72d7af]/55 bg-[#72d7af]/[0.1] shadow-[0_14px_45px_rgba(114,215,175,0.1)]'
+                  : 'border-white/10 bg-white/[0.025] hover:border-[#72d7af]/25 hover:bg-[#72d7af]/[0.04]'
+              }`}
+            >
+            <span
+              className={`absolute inset-x-0 top-0 h-0.5 transition ${
+                mode === 'train' ? 'bg-[#72d7af]' : 'bg-transparent'
+              }`}
+            />
+            <span className="flex items-center gap-4">
+              <span
+                className={`grid size-11 shrink-0 place-items-center rounded-2xl transition ${
+                  mode === 'train'
+                    ? 'bg-[#72d7af] text-[#10251d]'
+                    : 'bg-white/5 text-[#72d7af] group-hover:bg-[#72d7af]/10'
+                }`}
+              >
+                <BrainCircuit className="size-5" aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-lg font-semibold text-white">Обучение</span>
+                <span className="mt-1 block text-xs leading-5 text-white/45">
+                  Как AI се упражнява и се научава да премахва шум
+                </span>
+              </span>
+            </span>
+            {mode === 'train' && (
+              <span className="absolute right-4 top-4 rounded-full bg-[#72d7af]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#72d7af]">
+                активно
+              </span>
+            )}
+            </button>
+            <span
+              aria-hidden="true"
+              className={`absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-col items-center transition ${
+                mode === 'train' ? 'text-[#72d7af]' : 'text-white/15'
+              }`}
+            >
+              <span className="h-3 w-px bg-current" />
+              <span className="grid size-6 place-items-center rounded-full border border-current bg-[#111225]">
+                <ArrowDown className="size-3" />
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+      <section className="rounded-[32px] border border-white/10 bg-[#15162d]/90 p-4 shadow-[0_40px_130px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-6 lg:p-7">
+        <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
           <span className="rounded-full border border-[#72d7af]/20 bg-[#72d7af]/[0.06] px-3 py-1.5 text-xs text-[#72d7af]">
             {mode === 'generate' ? 'AI вече е обучен' : 'AI се упражнява и се поправя'}
           </span>
@@ -1023,7 +1111,6 @@ function DiffusionLab() {
           </button>
           <span className="font-mono text-xs text-white/40">начален вариант #{seed}</span>
         </div>
-      </div>
 
       <div className="mb-6 rounded-2xl border border-[#f3a177]/15 bg-[#f3a177]/[0.055] px-4 py-3 text-sm leading-6 text-white/60">
         <strong className="font-semibold text-[#f3a177]">Честна граница:</strong>{' '}
@@ -1093,7 +1180,8 @@ function DiffusionLab() {
           </Button>
         </div>
       </div>
-    </section>
+      </section>
+    </div>
   );
 }
 
