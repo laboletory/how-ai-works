@@ -494,6 +494,7 @@ function ConceptInfluenceExplorer({ seed, showTechnical }: { seed: number; showT
 }
 
 function GenerationLab({ step, seed, showTechnical }: { step: number; seed: number; showTechnical: boolean }) {
+  const [chapter, setChapter] = useState<'words' | 'step' | 'detail'>('words');
   const state = useMemo(() => buildGenerationState(step, seed), [seed, step]);
   const currentValue = state.current[SELECTED_CELL];
   const predictedValue = state.predictedNoise[SELECTED_CELL];
@@ -501,113 +502,90 @@ function GenerationLab({ step, seed, showTechnical }: { step: number; seed: numb
 
   return (
     <div>
-      <PromptStrip timestep={state.timestep} showTechnical={showTechnical} />
-      <ConceptInfluenceExplorer seed={seed} showTechnical={showTechnical} />
-
-      <div className="mb-4 rounded-2xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm leading-6 text-white/55">
-        <strong className="text-white/80">Какво са цветните квадратчета?</strong>{' '}
-        Това е опростена скрита скица от числа. Цветовете само ни помагат да видим числата — те още не са цветовете на крайната картинка. В истинския модел всяко квадратче съдържа няколко числа и работи със съседите си.
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" aria-label="Части на упражнението за генериране">
+        {([
+          ['words', '1. Думите'],
+          ['step', '2. Една стъпка'],
+          ['detail', '3. Под микроскоп'],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setChapter(key)}
+            aria-pressed={chapter === key}
+            className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:text-sm ${
+              chapter === key ? 'bg-[#f3a177] text-[#181026]' : 'text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      <div className="grid items-stretch gap-2 xl:grid-cols-[1fr_auto_1fr_auto_1fr]">
-        <Panel
-          eyebrow="01 · вход"
-          title="Сегашната скрита скица"
-          technicalName="текущ latent zₜ"
-          showTechnical={showTechnical}
-          description="Това е числовото състояние, което AI вижда в момента. То още не е обикновена картинка."
-          values={state.current}
-          selected
-        />
-        <FlowArrow label="AI предлага" />
-        <Panel
-          eyebrow="02 · предсказание"
-          title="Промяната, която AI предлага"
-          technicalName="предвиден шум ε̂θ"
-          showTechnical={showTechnical}
-          description="AI гледа цялата скрита скица и всички думи, след което предлага какво леко да се промени навсякъде."
-          values={state.predictedNoise}
-          selected
-        />
-        <FlowArrow label="прилагаме малка част" />
-        <Panel
-          eyebrow="03 · резултат от стъпката"
-          title="Обновената скрита скица"
-          technicalName="следващ latent zₜ₋₁"
-          showTechnical={showTechnical}
-          description="Приложили сме малка част от предложението. Това пак описва цялата сцена — не отделна луна, земя или опашка."
-          values={state.next}
-          selected
-        />
-      </div>
+      {chapter === 'words' && (
+        <>
+          <PromptStrip timestep={state.timestep} showTechnical={showTechnical} />
+          <ConceptInfluenceExplorer seed={seed} showTechnical={showTechnical} />
+        </>
+      )}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[22px] border border-white/10 bg-[#0d0e20] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#afa3d9]">
-                Едно квадратче под микроскоп · [6,5]
-              </p>
-              <p className="mt-2 text-sm text-white/50">
-                Тази клетка не означава „опашка“. Тя съдържа част от разпределено описание и работи заедно със съседните клетки и останалите канали.
-              </p>
-              <p className="mt-2 text-sm text-white/70">
-                Вземаме старото число и изваждаме малка част от предложената промяна.
-              </p>
-            </div>
-            <span className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-xs text-white/50">
-              размер на промяната {state.schedulerStrength.toFixed(2)}
-            </span>
-          </div>
-          <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-sm sm:text-base">
-            <span className="rounded-lg bg-white/5 px-3 py-2 text-white">{number(currentValue)}</span>
-            <Minus className="size-4 text-white/30" aria-hidden="true" />
-            <span className="rounded-lg bg-[#f08b5d]/10 px-3 py-2 text-[#f3a177]">
-              {state.schedulerStrength.toFixed(2)} × {number(predictedValue)}
-            </span>
-            <Equal className="size-4 text-white/30" aria-hidden="true" />
-            <span className="rounded-lg bg-[#afa3d9]/10 px-3 py-2 text-[#c9bdf1]">
-              {number(nextValue)}
-            </span>
+      {chapter === 'step' && (
+        <div>
+          <p className="mb-4 max-w-3xl text-sm leading-6 text-white/55">
+            AI гледа цялата числова скица, предлага малка промяна навсякъде и прилага само част от нея.
+          </p>
+          <div className="grid items-stretch gap-2 xl:grid-cols-[1fr_auto_1fr_auto_1fr]">
+            <Panel eyebrow="01 · вход" title="Сегашната скрита скица" technicalName="текущ latent zₜ" showTechnical={showTechnical} description="Числовото състояние, което AI вижда в момента." values={state.current} selected />
+            <FlowArrow label="AI предлага" />
+            <Panel eyebrow="02 · предложение" title="Малката промяна" technicalName="предвиден шум ε̂θ" showTechnical={showTechnical} description="Предложение какво леко да се промени във всички области." values={state.predictedNoise} selected />
+            <FlowArrow label="прилагаме част" />
+            <Panel eyebrow="03 · резултат" title="Обновената скица" technicalName="следващ latent zₜ₋₁" showTechnical={showTechnical} description="Това отново е описание на цялата сцена, не отделен обект." values={state.next} selected />
           </div>
         </div>
+      )}
 
-        <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.035]">
-          {step === TOTAL_STEPS ? (
-            <div className="grid h-full min-h-48 grid-cols-[0.9fr_1.1fr]">
-              <img
-                src="/fox-moon.webp"
-                alt="Примерен декодиран резултат: червена лисица под луната"
-                className="h-full min-h-48 w-full object-cover"
-              />
-              <div className="flex flex-col justify-center p-5">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f3a177]">
-                  04 · превод към истински пиксели
-                </p>
-                <p className="mt-2 text-base font-semibold">Скрита скица → истински пиксели</p>
-                {showTechnical && (
-                  <p className="mt-1 font-mono text-[10px] text-[#afa3d9]">техническо име: VAE decoder</p>
-                )}
-                <p className="mt-2 text-xs leading-5 text-white/45">
-                  Последната част на AI прочита всички квадратчета и скрити числа заедно. Тя превръща общите структури в ръбове, цветове, козина, луна и терен. Това изображение е учебен пример; в браузъра не работи истински обучен модел.
-                </p>
-              </div>
+      {chapter === 'detail' && (
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-[22px] border border-white/10 bg-[#0d0e20] p-5">
+            <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#afa3d9]">Едно квадратче под микроскоп · [6,5]</p>
+            <h3 className="mt-2 text-lg font-semibold">Квадратчето не означава „опашка“</h3>
+            <p className="mt-2 text-sm leading-6 text-white/55">То съдържа част от общото описание и работи със съседните клетки. Вземаме старото число и изваждаме малка част от предложената промяна.</p>
+            <div className="mt-5 flex flex-wrap items-center gap-2 font-mono text-sm sm:text-base">
+              <span className="rounded-lg bg-white/5 px-3 py-2 text-white">{number(currentValue)}</span>
+              <Minus className="size-4 text-white/30" aria-hidden="true" />
+              <span className="rounded-lg bg-[#f08b5d]/10 px-3 py-2 text-[#f3a177]">{state.schedulerStrength.toFixed(2)} × {number(predictedValue)}</span>
+              <Equal className="size-4 text-white/30" aria-hidden="true" />
+              <span className="rounded-lg bg-[#afa3d9]/10 px-3 py-2 text-[#c9bdf1]">{number(nextValue)}</span>
             </div>
-          ) : (
-            <div className="flex h-full min-h-48 items-center gap-4 p-5">
-              <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/5 text-[#afa3d9]">
-                <LockKeyhole className="size-5" aria-hidden="true" />
+            <details className="mt-5 border-t border-white/8 pt-4 text-sm text-white/50">
+              <summary className="cursor-pointer font-semibold text-white/70">Какво са цветните квадратчета?</summary>
+              <p className="mt-3 leading-6">Това е опростена скрита скица от числа. Цветовете само ни помагат да ги видим — те още не са цветовете на крайната картинка.</p>
+            </details>
+          </div>
+
+          <div className="overflow-hidden rounded-[22px] border border-white/10 bg-white/[0.035]">
+            {step === TOTAL_STEPS ? (
+              <div className="grid h-full min-h-48 grid-cols-[0.9fr_1.1fr]">
+                <img src="/fox-moon.webp" alt="Примерен декодиран резултат: червена лисица под луната" className="h-full min-h-48 w-full object-cover" />
+                <div className="flex flex-col justify-center p-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f3a177]">04 · истински пиксели</p>
+                  <p className="mt-2 text-base font-semibold">Скрита скица → картинка</p>
+                  {showTechnical && <p className="mt-1 font-mono text-[10px] text-[#afa3d9]">техническо име: VAE decoder</p>}
+                  <p className="mt-2 text-xs leading-5 text-white/55">Накрая всички скрити числа заедно се превеждат в ръбове, цветове, козина, луна и терен.</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold">Преводът към истински пиксели идва чак накрая</p>
-                <p className="mt-1 text-xs leading-5 text-white/45">
-                  Няма готова картинка, скрита зад шума. Завърши стъпките, за да видиш как би изглеждал крайният превод.
-                </p>
+            ) : (
+              <div className="flex h-full min-h-48 items-center gap-4 p-5">
+                <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/5 text-[#afa3d9]"><LockKeyhole className="size-5" aria-hidden="true" /></div>
+                <div>
+                  <p className="text-sm font-semibold">Картинката се отключва накрая</p>
+                  <p className="mt-1 text-xs leading-5 text-white/55">Завърши стъпките, за да видиш крайния превод.</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -821,6 +799,7 @@ function TrainingVisualBridge({
 }
 
 function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number; showTechnical: boolean }) {
+  const [chapter, setChapter] = useState<'examples' | 'noise' | 'practice'>('examples');
   const state = useMemo(() => buildTrainingState(step, seed), [seed, step]);
   const cleanValue = state.clean[SELECTED_CELL];
   const noiseValue = state.noise[SELECTED_CELL];
@@ -828,9 +807,31 @@ function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number
 
   return (
     <div>
-      <TrainingDatasetIntro showTechnical={showTechnical} />
-      <TrainingVisualBridge state={state} showTechnical={showTechnical} />
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" aria-label="Части на упражнението за обучение">
+        {([
+          ['examples', '1. Примери'],
+          ['noise', '2. Добавяме шум'],
+          ['practice', '3. AI се упражнява'],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setChapter(key)}
+            aria-pressed={chapter === key}
+            className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:text-sm ${
+              chapter === key ? 'bg-[#72d7af] text-[#10251d]' : 'text-white/45 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
+      {chapter === 'examples' && <TrainingDatasetIntro showTechnical={showTechnical} />}
+      {chapter === 'noise' && <TrainingVisualBridge state={state} showTechnical={showTechnical} />}
+
+      {chapter === 'practice' && (
+        <>
       <div className="mb-5 grid gap-3 rounded-2xl border border-white/10 bg-[#0d0e20] p-4 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="flex items-center gap-4">
           <img
@@ -929,6 +930,8 @@ function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
@@ -983,20 +986,20 @@ function DiffusionLab() {
 
   return (
     <div id="lab" className="scroll-mt-6">
-      <div className="mb-10 sm:mb-12">
+      <div className="mb-7 sm:mb-10">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
             Двете половини на процеса
           </p>
           <p className="hidden text-xs text-white/30 sm:block">Избери откъде да започнеш</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2" aria-label="Избери процес">
-          <div className="relative pb-9">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3" aria-label="Избери процес">
+          <div className="relative pb-7 sm:pb-9">
             <button
               type="button"
               onClick={() => changeMode('generate')}
               aria-pressed={mode === 'generate'}
-              className={`group relative h-full w-full overflow-hidden rounded-[22px] border p-4 text-left transition sm:p-5 ${
+              className={`group relative h-full w-full overflow-hidden rounded-[20px] border p-3 text-left transition sm:rounded-[22px] sm:p-5 ${
                 mode === 'generate'
                   ? 'border-[#f3a177]/55 bg-[#f3a177]/[0.11] shadow-[0_14px_45px_rgba(240,139,93,0.12)]'
                   : 'border-white/10 bg-white/[0.025] hover:border-[#f3a177]/25 hover:bg-[#f3a177]/[0.045]'
@@ -1007,9 +1010,9 @@ function DiffusionLab() {
                 mode === 'generate' ? 'bg-[#f3a177]' : 'bg-transparent'
               }`}
             />
-            <span className="flex items-center gap-4">
+            <span className="flex items-center gap-3 sm:gap-4">
               <span
-                className={`grid size-11 shrink-0 place-items-center rounded-2xl transition ${
+                className={`grid size-9 shrink-0 place-items-center rounded-xl transition sm:size-11 sm:rounded-2xl ${
                   mode === 'generate'
                     ? 'bg-[#f3a177] text-[#181026]'
                     : 'bg-white/5 text-[#f3a177] group-hover:bg-[#f3a177]/10'
@@ -1018,14 +1021,14 @@ function DiffusionLab() {
                 <Sparkles className="size-5" aria-hidden="true" />
               </span>
               <span>
-                <span className="block text-lg font-semibold text-white">Генериране</span>
-                <span className="mt-1 block text-xs leading-5 text-white/45">
+                <span className="block text-sm font-semibold text-white sm:text-lg">Генериране</span>
+                <span className="mt-1 hidden text-xs leading-5 text-white/55 sm:block">
                   Как от случаен шум се появява нова картинка
                 </span>
               </span>
             </span>
             {mode === 'generate' && (
-              <span className="absolute right-4 top-4 rounded-full bg-[#f3a177]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#f3a177]">
+              <span className="absolute right-4 top-4 hidden rounded-full bg-[#f3a177]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#f3a177] sm:inline">
                 активно
               </span>
             )}
@@ -1042,12 +1045,12 @@ function DiffusionLab() {
               </span>
             </span>
           </div>
-          <div className="relative pb-9">
+          <div className="relative pb-7 sm:pb-9">
             <button
               type="button"
               onClick={() => changeMode('train')}
               aria-pressed={mode === 'train'}
-              className={`group relative h-full w-full overflow-hidden rounded-[22px] border p-4 text-left transition sm:p-5 ${
+              className={`group relative h-full w-full overflow-hidden rounded-[20px] border p-3 text-left transition sm:rounded-[22px] sm:p-5 ${
                 mode === 'train'
                   ? 'border-[#72d7af]/55 bg-[#72d7af]/[0.1] shadow-[0_14px_45px_rgba(114,215,175,0.1)]'
                   : 'border-white/10 bg-white/[0.025] hover:border-[#72d7af]/25 hover:bg-[#72d7af]/[0.04]'
@@ -1058,9 +1061,9 @@ function DiffusionLab() {
                 mode === 'train' ? 'bg-[#72d7af]' : 'bg-transparent'
               }`}
             />
-            <span className="flex items-center gap-4">
+            <span className="flex items-center gap-3 sm:gap-4">
               <span
-                className={`grid size-11 shrink-0 place-items-center rounded-2xl transition ${
+                className={`grid size-9 shrink-0 place-items-center rounded-xl transition sm:size-11 sm:rounded-2xl ${
                   mode === 'train'
                     ? 'bg-[#72d7af] text-[#10251d]'
                     : 'bg-white/5 text-[#72d7af] group-hover:bg-[#72d7af]/10'
@@ -1069,14 +1072,14 @@ function DiffusionLab() {
                 <BrainCircuit className="size-5" aria-hidden="true" />
               </span>
               <span>
-                <span className="block text-lg font-semibold text-white">Обучение</span>
-                <span className="mt-1 block text-xs leading-5 text-white/45">
+                <span className="block text-sm font-semibold text-white sm:text-lg">Обучение</span>
+                <span className="mt-1 hidden text-xs leading-5 text-white/55 sm:block">
                   Как AI се упражнява и се научава да премахва шум
                 </span>
               </span>
             </span>
             {mode === 'train' && (
-              <span className="absolute right-4 top-4 rounded-full bg-[#72d7af]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#72d7af]">
+              <span className="absolute right-4 top-4 hidden rounded-full bg-[#72d7af]/15 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#72d7af] sm:inline">
                 активно
               </span>
             )}
@@ -1097,7 +1100,7 @@ function DiffusionLab() {
       </div>
 
       <section className="rounded-[32px] border border-white/10 bg-[#15162d]/90 p-4 shadow-[0_40px_130px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-6 lg:p-7">
-        <div className="mb-6 flex flex-wrap items-center justify-end gap-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <span className="rounded-full border border-[#72d7af]/20 bg-[#72d7af]/[0.06] px-3 py-1.5 text-xs text-[#72d7af]">
             {mode === 'generate' ? 'AI вече е обучен' : 'AI се упражнява и се поправя'}
           </span>
@@ -1105,17 +1108,12 @@ function DiffusionLab() {
             type="button"
             onClick={() => setShowTechnical((current) => !current)}
             aria-pressed={showTechnical}
-            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/45 transition hover:border-white/20 hover:text-white aria-pressed:border-[#afa3d9]/30 aria-pressed:bg-[#afa3d9]/10 aria-pressed:text-[#c9bdf1]"
+            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 transition hover:border-white/20 hover:text-white aria-pressed:border-[#afa3d9]/30 aria-pressed:bg-[#afa3d9]/10 aria-pressed:text-[#c9bdf1]"
           >
             {showTechnical ? 'Скрий техническите имена' : 'Покажи техническите имена'}
           </button>
-          <span className="font-mono text-xs text-white/40">начален вариант #{seed}</span>
+          {showTechnical && <span className="font-mono text-xs text-white/50">начален вариант #{seed}</span>}
         </div>
-
-      <div className="mb-6 rounded-2xl border border-[#f3a177]/15 bg-[#f3a177]/[0.055] px-4 py-3 text-sm leading-6 text-white/60">
-        <strong className="font-semibold text-[#f3a177]">Честна граница:</strong>{' '}
-        числата и цветните таблици са малък учебен модел. Редът на действията е като при истинските модели, но тук не зареждаме огромния обучен AI.
-      </div>
 
       {mode === 'generate' ? (
         <GenerationLab step={step} seed={seed} showTechnical={showTechnical} />
@@ -1180,6 +1178,13 @@ function DiffusionLab() {
           </Button>
         </div>
       </div>
+
+      <details className="mt-6 rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3 text-sm text-white/55">
+        <summary className="cursor-pointer font-semibold text-white/70">За точността на учебния модел</summary>
+        <p className="mt-3 max-w-4xl leading-6">
+          Числата и цветните таблици са опростена визуализация. Редът на действията е като при истинските модели, но тук не зареждаме огромен обучен AI.
+        </p>
+      </details>
       </section>
     </div>
   );
@@ -1207,26 +1212,31 @@ export default function Home() {
 
       <section id="top" className="relative mx-auto w-full max-w-[1440px] px-5 pb-24 pt-12 sm:px-8 lg:px-12 lg:pb-32 lg:pt-16">
         <div className="pointer-events-none absolute -left-48 top-0 h-[520px] w-[520px] rounded-full bg-[#613b8f]/15 blur-[110px]" />
-        <div className="relative z-10 mb-12 grid gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-end">
+        <div className="relative z-10 mb-14 grid gap-10 lg:grid-cols-[1fr_0.88fr] lg:items-end">
           <div>
             <p className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#f3a177]">
               <Sparkles className="size-4" aria-hidden="true" />
-              Една стъпка под микроскоп
+              Интерактивно обяснение как AI прави картинки
             </p>
             <h1 className="max-w-4xl text-balance text-[clamp(3rem,7vw,6.6rem)] font-medium leading-[0.92] tracking-[-0.06em]">
               Не картинка.
               <span className="block text-[#afa3d9]">Поредица от числа.</span>
             </h1>
           </div>
-          <div className="max-w-xl lg:justify-self-end">
-            <p className="text-pretty text-lg leading-8 text-muted-foreground sm:text-xl">
-              Проследи какво вижда AI, каква промяна предлага и как от таблица с числа постепенно се оформя цяла сцена.
+          <div className="max-w-2xl lg:justify-self-end">
+            <p className="text-pretty text-lg leading-8 text-white/70 sm:text-xl">
+              Виж как AI се учи от картинки с описания и как после превръща случаен шум в нова сцена — не наведнъж, а с много малки поправки.
             </p>
+            <div className="mt-5 flex items-center gap-3 text-sm text-white/50">
+              <span className="text-[#72d7af]">Обучение</span>
+              <ArrowRight className="size-4 text-white/20" aria-hidden="true" />
+              <span className="text-[#f3a177]">Генериране</span>
+            </div>
             <a
               href="#lab"
               className="mt-7 inline-flex h-11 items-center gap-2 rounded-full bg-[#f08b5d] px-5 text-sm font-semibold text-[#181026] transition hover:bg-[#f6a07b]"
             >
-              Влез в процеса
+              Започни упражнението
               <ArrowDown className="size-4" aria-hidden="true" />
             </a>
           </div>
