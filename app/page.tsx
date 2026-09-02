@@ -8,13 +8,14 @@ import {
   CircleDot,
   Equal,
   LockKeyhole,
+  MessageSquareText,
   Minus,
   Pause,
   Play,
+  Plus,
   RefreshCw,
   Sigma,
   Sparkles,
-  StepForward,
   Waves,
 } from 'lucide-react';
 
@@ -283,51 +284,272 @@ function Panel({
 
 function FlowArrow({ label }: { label: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-1 text-white/25 xl:flex-col xl:px-1 xl:py-0">
-      <ArrowDown className="size-4 xl:hidden" aria-hidden="true" />
-      <ArrowRight className="hidden size-4 xl:block" aria-hidden="true" />
-      <span className="font-mono text-[9px] uppercase tracking-[0.12em] xl:[writing-mode:vertical-rl]">
+    <div className="flex items-center justify-center gap-2 py-1 text-white/25 lg:flex-col lg:px-1 lg:py-0">
+      <ArrowDown className="size-4 lg:hidden" aria-hidden="true" />
+      <ArrowRight className="hidden size-4 lg:block" aria-hidden="true" />
+      <span className="font-mono text-[9px] uppercase tracking-[0.12em] lg:[writing-mode:vertical-rl]">
         {label}
       </span>
     </div>
   );
 }
 
-function PromptStrip({ timestep, showTechnical }: { timestep: number; showTechnical: boolean }) {
+function PromptStrip({
+  step,
+  timestep,
+  values,
+  showTechnical,
+}: {
+  step: number;
+  timestep: number;
+  values: number[];
+  showTechnical: boolean;
+}) {
+  const tokens = PROMPT.split(' ');
+  const stageIndex = Math.min(4, Math.floor(step / 5));
+  const stages = [
+    {
+      label: 'Посока от думите',
+      focus: ['лисица', 'луна', 'под'],
+      text: 'Картата още е почти изцяло шум. Prompt-ът задава кои идеи и отношения трябва постепенно да се търсят.',
+    },
+    {
+      label: 'Голяма композиция',
+      focus: ['лисица', 'под', 'луна'],
+      text: '„Под“ помага големите области да се подредят: луната по-високо, а лисицата по-ниско.',
+    },
+    {
+      label: 'Разпознаваеми форми',
+      focus: ['лисица', 'луна'],
+      text: 'Числовата скица започва да носи общите форми, които моделът е научил за лисица и луна.',
+    },
+    {
+      label: 'Особености и детайли',
+      focus: ['малка', 'червена', 'голяма'],
+      text: 'Описателните думи насочват мащаба, цвета и по-фините особености на сцената.',
+    },
+    {
+      label: 'Съгласувана картина',
+      focus: tokens,
+      text: 'Всички думи продължават да действат заедно, докато последните несъответствия се изглаждат.',
+    },
+  ];
+  const stage = stages[stageIndex];
+
   return (
-    <div className="mb-5 grid gap-3 rounded-2xl border border-white/10 bg-[#0d0e20] p-4 lg:grid-cols-[1fr_auto] lg:items-center">
-      <div>
-        <p className="mb-1 text-sm font-semibold text-white">
-          Изречението се превежда на числа, които AI може да използва
-        </p>
-        <p className="mb-3 text-xs leading-5 text-white/40">
-          Думите не са готови картинки. Те са подсказки, които насочват всяка следваща промяна.
-        </p>
-        {showTechnical && (
-          <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#afa3d9]">
-            техническо име: text encoder → embedding c
+    <section className="mb-5 rounded-[24px] border border-[#f3a177]/18 bg-[#0d0e20] p-4 sm:p-5">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div className="max-w-2xl">
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#f3a177]">Стартът на генерирането</p>
+          <h3 className="mt-2 text-xl font-semibold text-white">Ти даваш prompt. AI започва от шум.</h3>
+          <p className="mt-2 text-sm leading-6 text-white/55">
+            Prompt-ът казва какво искаме да се появи. AI превежда думите в числови подсказки, които насочват всяка следваща промяна в шума.
           </p>
-        )}
-        <div className="flex flex-wrap gap-1.5" aria-label={`Prompt: ${PROMPT}`}>
-          {PROMPT.split(' ').map((token, index) => (
-            <span
-              key={`${token}-${index}`}
-              className={`rounded-md px-2 py-1 text-xs ${
-                ['червена', 'лисица', 'луна'].includes(token)
-                  ? 'bg-[#f08b5d]/15 text-[#f3a177]'
-                  : 'bg-white/5 text-white/55'
-              }`}
-            >
-              {token}
-            </span>
-          ))}
+        </div>
+        <div className="rounded-xl border border-white/8 bg-white/[0.035] px-3 py-2 text-right">
+          <p className="font-mono text-[9px] uppercase tracking-[0.12em] text-white/35">текущ етап</p>
+          <p className="mt-1 text-xs font-semibold text-[#f3a177]">{stage.label}</p>
+          <p className="mt-1 font-mono text-[10px] text-[#afa3d9]">оставащ шум · {Math.round(timestep / 10)}%</p>
+          {showTechnical && <p className="mt-1 font-mono text-[9px] text-white/35">t={timestep} · 12×12×4</p>}
         </div>
       </div>
-      <div className="flex items-center gap-3 font-mono text-xs text-white/45">
-        <span className="rounded-lg bg-white/5 px-3 py-2">оставащ шум: {Math.round(timestep / 10)}%</span>
-        {showTechnical && <span className="rounded-lg bg-white/5 px-3 py-2">t={timestep} · 12×12×4</span>}
+
+      <div className="grid items-stretch gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+        <div className="rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.06] p-4">
+          <div className="flex items-center gap-2 text-[#f3a177]">
+            <MessageSquareText className="size-4" aria-hidden="true" />
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em]">1 · твоят prompt</p>
+          </div>
+          <blockquote className="mt-4 text-base font-semibold leading-6 text-white">
+            „{PROMPT}“
+          </blockquote>
+          <p className="mt-3 text-xs leading-5 text-white/50">Това е инструкцията, която ние пишем на AI.</p>
+        </div>
+
+        <FlowArrow label="разделя думите" />
+
+        <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/40">2 · части от изречението</p>
+          <div className="mt-4 flex flex-wrap gap-1.5" aria-label={`Думи в prompt-а: ${PROMPT}`}>
+            {tokens.map((token, index) => (
+              <span
+                key={`${token}-${index}`}
+                className={`rounded-md px-2 py-1 text-xs ${
+                  stage.focus.includes(token)
+                    ? 'bg-[#f08b5d]/15 text-[#f3a177]'
+                    : 'bg-white/5 text-white/60'
+                }`}
+              >
+                {token}
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-5 text-white/50">Думите и връзките между тях се разглеждат заедно.</p>
+        </div>
+
+        <FlowArrow label="превежда в числа" />
+
+        <div className="rounded-2xl border border-[#afa3d9]/15 bg-[#afa3d9]/[0.045] p-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#afa3d9]">3 · числови подсказки</p>
+          <div className="mt-4 space-y-2 font-mono text-[11px]">
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.035] px-3 py-2">
+              <span className="text-[#f3a177]">лисица</span>
+              <span className="text-white/55">[0.42, −0.18, 0.77, …]</span>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-lg bg-white/[0.035] px-3 py-2">
+              <span className="text-[#f3a177]">луна</span>
+              <span className="text-white/55">[−0.06, 0.91, 0.24, …]</span>
+            </div>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-white/50">Това са учебни примерни числа, не готови части от картинка.</p>
+          {showTechnical && (
+            <p className="mt-3 border-t border-white/8 pt-3 font-mono text-[10px] text-[#afa3d9]">
+              text encoder → context-dependent embeddings c
+            </p>
+          )}
+        </div>
       </div>
+
+      <div className="mt-4 grid items-center gap-4 rounded-2xl border border-[#f3a177]/18 bg-[#f3a177]/[0.045] p-4 sm:grid-cols-[112px_1fr_auto]">
+        <div className="w-24 sm:w-28">
+          <LatentGrid values={values} label={`Числовата скица при стъпка ${step}`} />
+        </div>
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#f3a177]">
+            Какво правят думите сега · стъпка {step}
+          </p>
+          <h4 className="mt-2 text-base font-semibold text-white">{stage.label}</h4>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-white/55">{stage.text}</p>
+        </div>
+        <div className="hidden text-right sm:block">
+          <p className="font-mono text-xl text-white/80">{Math.round((step / TOTAL_STEPS) * 100)}%</p>
+          <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-white/30">от процеса</p>
+        </div>
+      </div>
+      <p className="mt-3 text-[11px] leading-5 text-white/30">
+        Оцветените думи показват учебния фокус на етапа. В истинския модел всички думи могат да влияят при всяка стъпка.
+      </p>
+    </section>
+  );
+}
+
+const WEIGHTS_BEFORE = [0.18, -0.42, 0.07, 0.61, -0.25, 0.33, 0.72, -0.14, 0.49, 0.05, -0.38, 0.27];
+const WEIGHTS_AFTER = [0.18, -0.41, 0.07, 0.61, -0.25, 0.35, 0.71, -0.14, 0.49, 0.05, -0.37, 0.27];
+
+function WeightGrid({ values, changed = [] }: { values: number[]; changed?: number[] }) {
+  return (
+    <div
+      role="img"
+      aria-label="Учебен откъс от матрица с числови тежести"
+      className="grid grid-cols-4 gap-1 font-mono text-[10px]"
+    >
+      {values.map((value, index) => (
+        <span
+          key={index}
+          className={`rounded-md border px-1.5 py-2 text-center transition ${
+            changed.includes(index)
+              ? 'border-[#72d7af]/30 bg-[#72d7af]/10 text-[#9ee3c8]'
+              : 'border-white/8 bg-white/[0.035] text-white/45'
+          }`}
+        >
+          {value.toFixed(2)}
+        </span>
+      ))}
     </div>
+  );
+}
+
+function WeightsExplainer({ mode, showTechnical }: { mode: Mode; showTechnical: boolean }) {
+  const isTraining = mode === 'train';
+
+  return (
+    <section className={`mt-5 rounded-[24px] border p-4 sm:p-5 ${
+      isTraining ? 'border-[#72d7af]/20 bg-[#72d7af]/[0.04]' : 'border-[#f3a177]/18 bg-[#f3a177]/[0.035]'
+    }`}>
+      <div className="max-w-3xl">
+        <p className={`font-mono text-[10px] uppercase tracking-[0.16em] ${isTraining ? 'text-[#72d7af]' : 'text-[#f3a177]'}`}>
+          {isTraining ? 'Какво остава след упражнението?' : 'Как наученото участва в генерирането?'}
+        </p>
+        <h3 className="mt-2 text-xl font-semibold">
+          {isTraining ? 'Записваме променените тежести, не самата картинка' : 'Тежестите са заредени и заключени'}
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-white/55">
+          {isTraining
+            ? 'Грешката показва кои научени числа трябва да се коригират. Милиони упражнения променят по малко огромен брой тежести.'
+            : 'Моделът използва научените тежести, за да свърже prompt-векторите с текущата шумна скица. По време на това генериране тежестите не се променят.'}
+        </p>
+      </div>
+
+      {isTraining ? (
+        <div className="mt-5 grid items-center gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <div className="rounded-2xl border border-white/10 bg-[#0d0e20] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/35">1 · преди поправката</p>
+            <div className="mt-3"><WeightGrid values={WEIGHTS_BEFORE} /></div>
+          </div>
+          <FlowArrow label="грешка 0.084" />
+          <div className="rounded-2xl border border-[#72d7af]/18 bg-[#0d0e20] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">2 · малка корекция</p>
+            <div className="mt-3"><WeightGrid values={WEIGHTS_AFTER} changed={[1, 5, 6, 10]} /></div>
+          </div>
+          <FlowArrow label="повтаряме много пъти" />
+          <div className="rounded-2xl border border-[#72d7af]/18 bg-[#72d7af]/[0.055] p-4">
+            <div className="flex items-center gap-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#72d7af]/12 text-[#72d7af]"><BrainCircuit className="size-5" aria-hidden="true" /></span>
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">3 · обученият модел</p>
+                <p className="mt-1 text-sm font-semibold">Огромна система от научени числа</p>
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-white/55">Това е „паметта“ на модела: не папка с картинки, а разпределени закономерности в много тежести.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-5 grid items-center gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <div className="rounded-2xl border border-[#f3a177]/18 bg-[#0d0e20] p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#f3a177]">1 · научени тежести</p>
+              <LockKeyhole className="size-4 text-[#f3a177]" aria-hidden="true" />
+            </div>
+            <div className="mt-3"><WeightGrid values={WEIGHTS_AFTER} /></div>
+            <p className="mt-3 text-xs text-white/50">Еднакви за всички стъпки на тази генерация.</p>
+          </div>
+          <div className="flex items-center justify-center gap-2 py-1 text-white/25 lg:flex-col lg:px-1 lg:py-0">
+            <Plus className="size-4" aria-hidden="true" />
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] lg:[writing-mode:vertical-rl]">временни входове</span>
+          </div>
+          <div className="space-y-2 rounded-2xl border border-white/10 bg-[#0d0e20] p-4">
+            <div className="rounded-lg bg-white/[0.035] px-3 py-2">
+              <p className="font-mono text-[9px] uppercase text-[#afa3d9]">prompt-вектор</p>
+              <p className="mt-1 font-mono text-[11px] text-white/55">[0.42, −0.18, 0.77, …]</p>
+            </div>
+            <div className="rounded-lg bg-white/[0.035] px-3 py-2">
+              <p className="font-mono text-[9px] uppercase text-[#afa3d9]">текуща шумна скица</p>
+              <p className="mt-1 font-mono text-[11px] text-white/55">12 × 12 × много числа</p>
+            </div>
+          </div>
+          <FlowArrow label="изчислява" />
+          <div className="rounded-2xl border border-[#f3a177]/18 bg-[#f3a177]/[0.055] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#f3a177]">2 · следваща промяна</p>
+            <p className="mt-3 text-base font-semibold">Къде и колко да се промени шумът</p>
+            <p className="mt-2 text-xs leading-5 text-white/55">Променя се временната скица. Научените тежести остават същите.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-5 grid gap-2 border-t border-white/8 pt-4 sm:grid-cols-3">
+        <div className="rounded-xl bg-white/[0.025] p-3 text-xs leading-5 text-white/50"><strong className="block text-white/75">Вектор</strong>Подреден ред от числа за текуща дума, област или състояние.</div>
+        <div className="rounded-xl bg-white/[0.025] p-3 text-xs leading-5 text-white/50"><strong className="block text-white/75">Матрица</strong>Таблица от числа, която може да преобразува много вектори.</div>
+        <div className="rounded-xl bg-white/[0.025] p-3 text-xs leading-5 text-white/50"><strong className="block text-white/75">Тежест</strong>Едно научено число, което определя колко силно да влияе даден сигнал.</div>
+      </div>
+
+      {showTechnical && (
+        <p className="mt-4 font-mono text-[10px] leading-5 text-[#afa3d9]">
+          {isTraining
+            ? 'backpropagation изчислява gradients → optimizer обновява parameters (матрици и многомерни tensors)'
+            : 'inference / forward pass: parameters са frozen; обновява се само текущият latent zₜ'}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -524,7 +746,7 @@ function GenerationLab({ step, seed, showTechnical }: { step: number; seed: numb
 
       {chapter === 'words' && (
         <>
-          <PromptStrip timestep={state.timestep} showTechnical={showTechnical} />
+          <PromptStrip step={step} timestep={state.timestep} values={state.current} showTechnical={showTechnical} />
           <ConceptInfluenceExplorer seed={seed} showTechnical={showTechnical} />
         </>
       )}
@@ -534,7 +756,7 @@ function GenerationLab({ step, seed, showTechnical }: { step: number; seed: numb
           <p className="mb-4 max-w-3xl text-sm leading-6 text-white/55">
             AI гледа цялата числова скица, предлага малка промяна навсякъде и прилага само част от нея.
           </p>
-          <div className="grid items-stretch gap-2 xl:grid-cols-[1fr_auto_1fr_auto_1fr]">
+          <div className="grid items-stretch gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
             <Panel eyebrow="01 · вход" title="Сегашната скрита скица" technicalName="текущ latent zₜ" showTechnical={showTechnical} description="Числовото състояние, което AI вижда в момента." values={state.current} selected />
             <FlowArrow label="AI предлага" />
             <Panel eyebrow="02 · предложение" title="Малката промяна" technicalName="предвиден шум ε̂θ" showTechnical={showTechnical} description="Предложение какво леко да се промени във всички области." values={state.predictedNoise} selected />
@@ -545,6 +767,7 @@ function GenerationLab({ step, seed, showTechnical }: { step: number; seed: numb
       )}
 
       {chapter === 'detail' && (
+        <>
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[22px] border border-white/10 bg-[#0d0e20] p-5">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#afa3d9]">Едно квадратче под микроскоп · [6,5]</p>
@@ -585,6 +808,8 @@ function GenerationLab({ step, seed, showTechnical }: { step: number; seed: numb
             )}
           </div>
         </div>
+        <WeightsExplainer mode="generate" showTechnical={showTechnical} />
+        </>
       )}
     </div>
   );
@@ -596,13 +821,13 @@ function TrainingDatasetIntro({ showTechnical }: { showTechnical: boolean }) {
       <div className="grid gap-6 p-5 lg:grid-cols-[0.72fr_1.28fr] lg:p-6">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#72d7af]">
-            Преди първото упражнение · откъде започва всичко
+            Преди AI да може да генерира
           </p>
           <h3 className="mt-3 text-2xl font-semibold leading-tight">
-            Не милиони лисици. Огромна библиотека от различни картинки и текстове.
+            Обучението започва с много двойки: картинка + описание
           </h3>
           <p className="mt-3 text-sm leading-6 text-white/55">
-            Картинките идват с придружаващ текст. От много различни примери AI търси повтарящи се връзки, а после се упражнява с шум.
+            Тук не ние задаваме нов prompt. AI разглежда вече съществуващи примери и търси кои думи често вървят с кои визуални особености.
           </p>
           {showTechnical && (
             <div className="mt-4 rounded-xl border border-[#72d7af]/15 bg-[#0d0e20] p-4 text-xs leading-5 text-white/45">
@@ -647,9 +872,52 @@ function TrainingDatasetIntro({ showTechnical }: { showTechnical: boolean }) {
         </figure>
       </div>
 
-      <div className="border-t border-[#f3a177]/15 bg-[#f3a177]/[0.04] px-5 py-4 text-xs leading-5 text-white/45">
+      <div className="border-t border-white/8 bg-[#0d0e20]/70 p-4 sm:p-5">
+        <div className="mb-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/35">Нека приближим един пример</p>
+          <p className="mt-2 text-sm text-white/55">Всяка двойка дава две свързани части от една и съща информация.</p>
+        </div>
+
+        <div className="grid items-stretch gap-2 lg:grid-cols-[0.8fr_auto_1fr_auto_1.15fr]">
+          <figure className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
+            <img src="/fox-moon.webp" alt="Лисица под голяма луна" className="aspect-[16/10] w-full object-cover" />
+            <figcaption className="px-4 py-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">1 · картинка</p>
+              <p className="mt-1 text-xs text-white/50">Визуалният пример</p>
+            </figcaption>
+          </figure>
+
+          <div className="flex items-center justify-center py-1 text-white/25 lg:flex-col lg:px-1 lg:py-0">
+            <Plus className="size-4" aria-hidden="true" />
+            <span className="ml-2 font-mono text-[9px] uppercase tracking-[0.12em] lg:ml-0 lg:mt-2 lg:[writing-mode:vertical-rl]">вървят заедно</span>
+          </div>
+
+          <div className="rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.055] p-4">
+            <div className="flex items-center gap-2 text-[#f3a177]">
+              <MessageSquareText className="size-4" aria-hidden="true" />
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em]">2 · описание</p>
+            </div>
+            <blockquote className="mt-4 text-base font-semibold leading-6 text-white">„{PROMPT}“</blockquote>
+            <p className="mt-3 text-xs leading-5 text-white/50">Това е текстът, който придружава картинката в учебния пример.</p>
+          </div>
+
+          <FlowArrow label="сравнява много двойки" />
+
+          <div className="rounded-2xl border border-[#72d7af]/18 bg-[#72d7af]/[0.05] p-4">
+            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">3 · открива повтарящи се връзки</p>
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„лисица“</span><span className="text-white/30"> → </span><span className="text-white/60">уши, козина, силует</span></div>
+              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„луна“</span><span className="text-white/30"> → </span><span className="text-white/60">кръг, светлина, небе</span></div>
+              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„под“</span><span className="text-white/30"> → </span><span className="text-white/60">връзка между позиции</span></div>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-white/50">Това са закономерности от много примери, не готови парчета за копиране.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-[#f3a177]/15 bg-[#f3a177]/[0.04] px-5 py-4 text-xs leading-5 text-white/55">
         <strong className="text-[#f3a177]">Важно:</strong>{' '}
-        AI търси закономерности, а не изрязва части от албум. Качеството и разнообразието на примерите имат значение.
+        Един пример не е достатъчен. Разнообразието и качеството на огромната библиотека определят какви връзки може да научи AI.
       </div>
     </section>
   );
@@ -758,7 +1026,7 @@ function TrainingVisualBridge({
         </p>
       </div>
 
-      <div className="grid items-stretch gap-2 xl:grid-cols-[1fr_auto_1fr_auto_1fr]">
+      <div className="grid items-stretch gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
         {stages.map((stage, index) => (
           <div key={stage.eyebrow} className="contents">
             <article className="rounded-[22px] border border-white/10 bg-[#0d0e20] p-4">
@@ -856,7 +1124,7 @@ function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number
         </div>
       </div>
 
-      <div className="grid items-stretch gap-2 xl:grid-cols-[1fr_auto_1fr_auto_1fr]">
+      <div className="grid items-stretch gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
         <Panel
           eyebrow="01 · подготвяме примера"
           title="Скрита скица на истинската картинка"
@@ -930,6 +1198,7 @@ function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number
           </div>
         </div>
       </div>
+      <WeightsExplainer mode="train" showTechnical={showTechnical} />
         </>
       )}
     </div>
@@ -939,7 +1208,7 @@ function TrainingLab({ step, seed, showTechnical }: { step: number; seed: number
 function DiffusionLab() {
   const [mode, setMode] = useState<Mode>('generate');
   const [step, setStep] = useState(0);
-  const [seed, setSeed] = useState(4459);
+  const seed = 4459;
   const [playing, setPlaying] = useState(false);
   const [showTechnical, setShowTechnical] = useState(false);
 
@@ -963,26 +1232,19 @@ function DiffusionLab() {
     setPlaying(false);
   }
 
-  function chooseNewSeed() {
-    setSeed(1000 + Math.floor(Math.random() * 9000));
-    setStep(0);
-    setPlaying(false);
-  }
-
   function togglePlayback() {
     if (step >= TOTAL_STEPS) setStep(0);
     setPlaying((current) => !current);
-  }
-
-  function nextStep() {
-    setPlaying(false);
-    setStep((current) => Math.min(TOTAL_STEPS, current + 1));
   }
 
   const timestep =
     mode === 'generate'
       ? Math.round((1 - step / TOTAL_STEPS) * 1000)
       : Math.round((step / TOTAL_STEPS) * 1000);
+  const timelinePhases = mode === 'generate'
+    ? ['Шум', 'Композиция', 'Форми', 'Детайли', 'Картинка']
+    : ['Чист пример', 'Лек шум', 'Среден шум', 'Силен шум', 'Много шум'];
+  const activePhase = Math.min(timelinePhases.length - 1, Math.floor(step / 5));
 
   return (
     <div id="lab" className="scroll-mt-6">
@@ -1115,27 +1377,27 @@ function DiffusionLab() {
           {showTechnical && <span className="font-mono text-xs text-white/50">начален вариант #{seed}</span>}
         </div>
 
-      {mode === 'generate' ? (
-        <GenerationLab step={step} seed={seed} showTechnical={showTechnical} />
-      ) : (
-        <TrainingLab step={step} seed={seed} showTechnical={showTechnical} />
-      )}
-
-      <div className="mt-6 border-t border-white/10 pt-5">
-        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <div className={`mb-6 rounded-2xl border p-4 sm:p-5 ${
+        mode === 'generate'
+          ? 'border-[#f3a177]/18 bg-[#f3a177]/[0.035]'
+          : 'border-[#72d7af]/18 bg-[#72d7af]/[0.035]'
+      }`}>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">
-              {mode === 'generate' ? 'Създаване стъпка по стъпка' : 'Упражнение с добавяне на шум'}
+            <p className={`font-mono text-[10px] uppercase tracking-[0.15em] ${mode === 'generate' ? 'text-[#f3a177]' : 'text-[#72d7af]'}`}>
+              Основният контрол на упражнението
             </p>
-            <p className="mt-1 text-xs text-white/40">
-              {mode === 'generate'
-                ? `Стъпка ${step} от ${TOTAL_STEPS} · шумът постепенно намалява`
-                : `Ниво на шум ${step} от ${TOTAL_STEPS} · задачата става по-трудна`}
+            <p className="mt-1 text-sm font-semibold">
+              {mode === 'generate' ? 'Движи процеса от шум към картинка' : 'Добавяй шум и увеличавай трудността'}
+            </p>
+            <p className="mt-1 text-xs text-white/50">
+              Премести плъзгача или натисни „Пусни“, за да проследиш целия процес.
             </p>
           </div>
-          <span className="font-mono text-sm text-[#f3a177]">
-            {mode === 'generate' ? `${Math.round(timestep / 10)}% шум остава` : `${Math.round(timestep / 10)}% шум добавен`}
-          </span>
+          <div className="text-right">
+            <p className="font-mono text-sm text-white/80">{mode === 'generate' ? `${Math.round(timestep / 10)}% шум остава` : `${Math.round(timestep / 10)}% шум добавен`}</p>
+            <p className="mt-1 font-mono text-[10px] text-white/35">стъпка {step} от {TOTAL_STEPS}</p>
+          </div>
         </div>
 
         <Slider
@@ -1148,36 +1410,44 @@ function DiffusionLab() {
             setStep(typeof value === 'number' ? value : (value[0] ?? 0));
             setPlaying(false);
           }}
-          className="[&_[data-slot=slider-range]]:bg-[#f08b5d] [&_[data-slot=slider-thumb]]:size-4 [&_[data-slot=slider-thumb]]:border-[#f08b5d] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-track]]:h-1.5 [&_[data-slot=slider-track]]:bg-white/10"
+          className={mode === 'generate'
+            ? '[&_[data-slot=slider-range]]:bg-[#f08b5d] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-[#f08b5d] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-white/10'
+            : '[&_[data-slot=slider-range]]:bg-[#72d7af] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-[#72d7af] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-track]]:h-2 [&_[data-slot=slider-track]]:bg-white/10'}
         />
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Button
-            onClick={togglePlayback}
-            className="h-10 rounded-full bg-white px-4 text-[#11122a] hover:bg-white/85"
-          >
+        <div className="mt-3 grid grid-cols-5 gap-1" aria-label={`Текуща фаза: ${timelinePhases[activePhase]}`}>
+          {timelinePhases.map((phase, index) => (
+            <span
+              key={phase}
+              className={`rounded-md px-1 py-1.5 text-center text-[9px] leading-3 transition sm:text-[10px] ${
+                index === activePhase
+                  ? mode === 'generate'
+                    ? 'bg-[#f3a177]/14 font-semibold text-[#f3a177]'
+                    : 'bg-[#72d7af]/14 font-semibold text-[#72d7af]'
+                  : index < activePhase
+                    ? 'text-white/45'
+                    : 'text-white/25'
+              }`}
+            >
+              {phase}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-4 flex items-center gap-3">
+          <Button onClick={togglePlayback} className="h-10 rounded-full bg-white px-4 text-[#11122a] hover:bg-white/85">
             {playing ? <Pause data-icon="inline-start" /> : <Play data-icon="inline-start" />}
             {playing ? 'Пауза' : step === TOTAL_STEPS ? 'Отначало' : 'Пусни'}
           </Button>
-          <Button
-            variant="outline"
-            onClick={nextStep}
-            disabled={step >= TOTAL_STEPS}
-            className="h-10 rounded-full border-white/10 bg-white/[0.035] px-4 text-white hover:bg-white/10"
-          >
-            <StepForward data-icon="inline-start" />
-            Една стъпка
-          </Button>
-          <Button
-            variant="outline"
-            onClick={chooseNewSeed}
-            className="h-10 rounded-full border-white/10 bg-white/[0.035] px-4 text-white hover:bg-white/10"
-          >
-            <RefreshCw data-icon="inline-start" />
-            Друг начален шум
-          </Button>
+          <p className="text-xs leading-5 text-white/35">Плъзгачът променя всички изгледи под него.</p>
         </div>
       </div>
+
+      {mode === 'generate' ? (
+        <GenerationLab step={step} seed={seed} showTechnical={showTechnical} />
+      ) : (
+        <TrainingLab step={step} seed={seed} showTechnical={showTechnical} />
+      )}
 
       <details className="mt-6 rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3 text-sm text-white/55">
         <summary className="cursor-pointer font-semibold text-white/70">За точността на учебния модел</summary>
@@ -1261,12 +1531,22 @@ export default function Home() {
                 <RefreshCw className="size-5 text-[#72d7af]" aria-hidden="true" />
               </div>
               <h3 className="mt-8 text-2xl font-semibold">Моделът се учи да предвижда</h3>
-              <ol className="mt-6 space-y-4 text-sm leading-6 text-white/55">
-                <li className="flex gap-3"><span className="font-mono text-white/25">01</span>Свиваме истинска картинка до скрита скица от числа.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">02</span>Ние сами добавяме точно известен случаен шум.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">03</span>Показваме шумната скица и текста на AI.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">04</span>Сравняваме отговора с истинския шум и поправяме AI.</li>
-              </ol>
+              <figure className="mt-6 rounded-2xl border border-[#72d7af]/12 bg-[#72d7af]/[0.035] p-3 sm:p-4">
+                <img
+                  src="/fox-training-cycle.png"
+                  alt="Четири стъпки на обучението: лисицата разглежда пример, добавя шум, опитва да го познае и коригира научените връзки"
+                  className="w-full"
+                />
+                <figcaption className="mt-3 grid grid-cols-4 gap-1 text-center text-[9px] leading-3 text-white/45 sm:text-[10px]">
+                  <span><strong className="block font-mono text-[#72d7af]">01</strong>пример</span>
+                  <span><strong className="block font-mono text-[#72d7af]">02</strong>известен шум</span>
+                  <span><strong className="block font-mono text-[#72d7af]">03</strong>AI познава</span>
+                  <span><strong className="block font-mono text-[#72d7af]">04</strong>корекция</span>
+                </figcaption>
+              </figure>
+              <p className="mt-5 text-sm leading-6 text-white/55">
+                Сравняваме опита с точния отговор и леко поправяме научените връзки. После упражнението започва отново с друг пример.
+              </p>
             </article>
 
             <article className="rounded-[28px] border border-white/10 bg-white/[0.035] p-7">
@@ -1275,12 +1555,38 @@ export default function Home() {
                 <LockKeyhole className="size-5 text-[#f3a177]" aria-hidden="true" />
               </div>
               <h3 className="mt-8 text-2xl font-semibold">Наученият модел вече не се променя</h3>
-              <ol className="mt-6 space-y-4 text-sm leading-6 text-white/55">
-                <li className="flex gap-3"><span className="font-mono text-white/25">01</span>Започваме от таблица със случайни числа.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">02</span>Думите се превръщат в числови подсказки.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">03</span>AI предлага и прилага много малки промени.</li>
-                <li className="flex gap-3"><span className="font-mono text-white/25">04</span>Накрая скритата скица се превежда в истински пиксели.</li>
-              </ol>
+              <figure className="mt-6 rounded-2xl border border-[#f3a177]/12 bg-[#f3a177]/[0.035] p-3 sm:p-4">
+                <svg
+                  viewBox="0 0 2168 725"
+                  role="img"
+                  aria-label="Четири стъпки на генерирането: случаен шум, промптът насочва, картината се избистря на малки стъпки и се появява готовият образ"
+                  className="w-full"
+                >
+                  <defs>
+                    <clipPath id="generation-cycle-circles">
+                      <ellipse cx="317" cy="342" rx="228" ry="234" />
+                      <ellipse cx="833" cy="342" rx="228" ry="234" />
+                      <ellipse cx="1351" cy="342" rx="228" ry="234" />
+                      <ellipse cx="1859" cy="342" rx="228" ry="234" />
+                    </clipPath>
+                  </defs>
+                  <image
+                    href="/fox-generation-cycle.png"
+                    width="2168"
+                    height="725"
+                    clipPath="url(#generation-cycle-circles)"
+                  />
+                </svg>
+                <figcaption className="mt-3 grid grid-cols-4 gap-1 text-center text-[9px] leading-3 text-white/45 sm:text-[10px]">
+                  <span><strong className="block font-mono text-[#f3a177]">01</strong>случаен шум</span>
+                  <span><strong className="block font-mono text-[#f3a177]">02</strong>промптът насочва</span>
+                  <span><strong className="block font-mono text-[#f3a177]">03</strong>малки стъпки</span>
+                  <span><strong className="block font-mono text-[#f3a177]">04</strong>готов образ</span>
+                </figcaption>
+              </figure>
+              <p className="mt-5 text-sm leading-6 text-white/55">
+                Моделът използва наученото, за да намалява шума. Думите насочват всяка следваща промяна, но не посочват готови части за поставяне.
+              </p>
             </article>
           </div>
         </div>
@@ -1326,15 +1632,106 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-y border-white/8 bg-[#0d0e20]">
+        <div className="mx-auto w-full max-w-[1280px] px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
+          <div className="grid gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#8ed3ba]">Откъде идва идеята?</p>
+              <h2 className="mt-5 text-4xl font-medium leading-tight tracking-[-0.04em] sm:text-5xl">
+                Не един изобретател. Три важни стъпки.
+              </h2>
+              <p className="mt-6 max-w-lg text-lg leading-8 text-muted-foreground">
+                Учените заемат идея от физиката: както капка мастило бавно се разпръсква във вода, подредбата може постепенно да изчезне. Ако AI научи обратната посока, може да я възстановява стъпка по стъпка.
+              </p>
+
+              <div className="mt-10 rounded-[28px] border border-white/10 bg-[#131426] p-5">
+                <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-white/35">Основната идея</p>
+                <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 text-center">
+                  <div className="rounded-2xl border border-[#f3a177]/25 bg-[#f3a177]/8 px-3 py-5">
+                    <Sparkles className="mx-auto size-5 text-[#f3a177]" aria-hidden="true" />
+                    <p className="mt-3 text-sm font-semibold">подредена картина</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 text-white/30">
+                    <ArrowRight className="size-5" aria-hidden="true" />
+                    <span className="font-mono text-[9px] uppercase">шум</span>
+                  </div>
+                  <div className="rounded-2xl border border-[#afa3d9]/25 bg-[#afa3d9]/8 px-3 py-5">
+                    <Waves className="mx-auto size-5 text-[#afa3d9]" aria-hidden="true" />
+                    <p className="mt-3 text-sm font-semibold">случайни числа</p>
+                  </div>
+                </div>
+                <div className="mt-4 border-t border-white/8 pt-4 text-sm leading-6 text-white/45">
+                  <p><span className="font-semibold text-white/65">Защо точно случаен шум?</span> След достатъчно малки добавки различните картинки стигат до един и същ прост вид позната „мъгла“ от случайни числа.</p>
+                  <p className="mt-2">Обучението показва пътя надясно. Моделът се учи да върви наляво.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute bottom-8 left-[3.25rem] top-8 hidden w-px bg-white/10 sm:block" aria-hidden="true" />
+              {[
+                {
+                  year: '2015',
+                  title: 'Идеята става генеративен модел',
+                  people: 'Jascha Sohl-Dickstein и екип',
+                  text: 'Те описват как структурата се разрушава бавно чрез дифузия и как един модел може да научи обратния процес.',
+                  href: 'https://arxiv.org/abs/1503.03585',
+                },
+                {
+                  year: '2020',
+                  title: 'Методът започва да прави убедителни картинки',
+                  people: 'Jonathan Ho, Ajay Jain и Pieter Abbeel',
+                  text: 'DDPM показва практичен начин моделът да се обучава да предвижда добавения шум и да го премахва стъпка по стъпка.',
+                  href: 'https://arxiv.org/abs/2006.11239',
+                },
+                {
+                  year: '2022',
+                  title: 'Процесът става по-ефективен и може да следва текст',
+                  people: 'Robin Rombach и екип',
+                  text: 'Latent Diffusion премества работата в по-малко числово пространство и добавя начин думите да насочват изображението.',
+                  href: 'https://arxiv.org/abs/2112.10752',
+                },
+              ].map((item, index) => (
+                <article key={item.year} className="relative grid gap-4 border-t border-white/10 py-8 first:border-t-0 sm:grid-cols-[106px_1fr] sm:gap-7">
+                  <div className="relative z-10 flex items-center gap-3 sm:block">
+                    <span className="inline-flex rounded-full border border-white/10 bg-[#0d0e20] px-3 py-1.5 font-mono text-xs text-[#f3a177]">
+                      {item.year}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/25 sm:mt-3 sm:block">
+                      стъпка 0{index + 1}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold leading-7">{item.title}</h3>
+                    <p className="mt-2 text-sm font-medium text-[#8ed3ba]">{item.people}</p>
+                    <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">{item.text}</p>
+                    <a className="mt-4 inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white" href={item.href} target="_blank" rel="noreferrer">
+                      Оригиналната публикация
+                      <ArrowRight className="size-3.5" aria-hidden="true" />
+                    </a>
+                  </div>
+                </article>
+              ))}
+              <p className="border-t border-white/10 pt-6 text-sm leading-6 text-white/35">
+                Това е съкратена учебна история. Методът има и други паралелни линии на развитие, но тези три публикации показват основния път до техниката в нашия пример.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="border-t border-white/8 bg-[#0d0e20]">
         <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-5 px-5 py-10 text-sm text-white/40 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12">
           <p>Учебен модел с реална последователност на операциите.</p>
           <div className="flex flex-wrap gap-5">
+            <a className="transition hover:text-white" href="https://arxiv.org/abs/1503.03585" target="_blank" rel="noreferrer">
+              Diffusion · 2015
+            </a>
             <a className="transition hover:text-white" href="https://arxiv.org/abs/2006.11239" target="_blank" rel="noreferrer">
-              DDPM paper
+              DDPM · 2020
             </a>
             <a className="transition hover:text-white" href="https://arxiv.org/abs/2112.10752" target="_blank" rel="noreferrer">
-              Latent Diffusion paper
+              Latent Diffusion · 2022
             </a>
           </div>
         </div>
