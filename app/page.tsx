@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import {
   ArrowDown,
   ArrowRight,
   BrainCircuit,
+  ChevronDown,
   CircleDot,
   Equal,
   LockKeyhole,
@@ -20,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { ExplanationDialog } from '@/components/explanation-dialog';
 import { TrainingPairExplorer } from '@/components/training-pair-explorer';
 import { LearningCycleIllustrations } from '@/components/learning-cycle-illustrations';
 import { WhatIsNoise } from '@/components/what-is-noise';
@@ -33,6 +36,21 @@ const PROMPT = 'малка червена лисица под голяма лу�
 
 type Mode = 'generate' | 'train';
 type ConceptKey = 'moon' | 'fox' | 'under' | 'ground';
+
+function moveBetweenTabs(event: KeyboardEvent<HTMLButtonElement>) {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  const tabs = Array.from(event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []);
+  if (!tabs.length) return;
+  event.preventDefault();
+  const current = tabs.indexOf(event.currentTarget);
+  const next = event.key === 'Home'
+    ? 0
+    : event.key === 'End'
+      ? tabs.length - 1
+      : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+  tabs[next]?.focus();
+  tabs[next]?.click();
+}
 
 type GenerationState = {
   current: number[];
@@ -412,9 +430,20 @@ function WeightsExplainer({ mode, showTechnical }: { mode: Mode; showTechnical: 
         <p className={`font-mono text-[10px] uppercase tracking-[0.16em] ${isTraining ? 'text-[#72d7af]' : 'text-[#f3a177]'}`}>
           {isTraining ? 'Какво остава след упражнението?' : 'Как наученото участва в генерирането?'}
         </p>
-        <h3 className="mt-2 text-xl font-semibold">
-          {isTraining ? 'Записваме променените тежести, не самата картинка' : 'Тежестите са заредени и заключени'}
-        </h3>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <h3 className="text-xl font-semibold">
+            {isTraining ? 'Записваме променените тежести, не самата картинка' : 'Тежестите са заредени и заключени'}
+          </h3>
+          <ExplanationDialog
+            label="Какво са тежестите?"
+            title="Тежестите са научените настройки на AI"
+            accent={isTraining ? 'mint' : 'peach'}
+          >
+            <p>Представи си огромен пулт с много малки регулатори. Всеки регулатор е число, което влияе колко силно AI да използва определена връзка.</p>
+            <p><strong className="text-white">При обучението</strong> грешката мести по малко някои от тези числа. След много примери в тях остават научените закономерности.</p>
+            <p><strong className="text-white">При генерирането</strong> тежестите не се променят. AI използва вече научените числа — не търси оригиналните тренировъчни картинки.</p>
+          </ExplanationDialog>
+        </div>
         <p className="mt-2 text-sm leading-6 text-white/55">
           {isTraining
             ? 'Грешката показва кои научени числа трябва да се коригират. Милиони упражнения променят по малко огромен брой тежести.'
@@ -679,7 +708,10 @@ function GenerationLab({ seed, showTechnical }: { seed: number; showTechnical: b
 
   return (
     <div>
-      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" aria-label="Части на упражнението за генериране">
+      <p className="mb-2 text-xs font-semibold text-[#f3a177]">
+        Генериране · стъпка {chapter === 'step' ? 1 : chapter === 'words' ? 2 : 3} от 3
+      </p>
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" role="tablist" aria-label="Части на упражнението за генериране">
         {([
           ['step', '1. Опитай'],
           ['words', '2. Думите'],
@@ -689,7 +721,12 @@ function GenerationLab({ seed, showTechnical }: { seed: number; showTechnical: b
             key={key}
             type="button"
             onClick={() => { setChapter(key); setPlaying(false); }}
-            aria-pressed={chapter === key}
+            id={`generation-tab-${key}`}
+            role="tab"
+            aria-selected={chapter === key}
+            aria-controls={`generation-panel-${key}`}
+            tabIndex={chapter === key ? 0 : -1}
+            onKeyDown={moveBetweenTabs}
             className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:text-sm ${
               chapter === key ? 'bg-[#f3a177] text-[#181026]' : 'text-white/45 hover:bg-white/5 hover:text-white'
             }`}
@@ -700,14 +737,19 @@ function GenerationLab({ seed, showTechnical }: { seed: number; showTechnical: b
       </div>
 
       {chapter === 'words' && (
-        <>
+        <section id="generation-panel-words" role="tabpanel" aria-labelledby="generation-tab-words">
           <PromptStrip showTechnical={showTechnical} />
           <ConceptInfluenceExplorer seed={seed} showTechnical={showTechnical} />
-        </>
+          <div className="mt-5 flex justify-end">
+            <Button onClick={() => setChapter('detail')} className="min-h-11 rounded-full bg-[#f3a177] px-5 text-[#181026] hover:bg-[#f3a177]/85">
+              Продължи: под микроскоп<ArrowRight data-icon="inline-end" />
+            </Button>
+          </div>
+        </section>
       )}
 
       {chapter === 'step' && (
-        <section className="rounded-[22px] border border-[#f3a177]/20 bg-[#0d0e20] p-4 sm:p-6" aria-label="Опитай една поправка">
+        <section id="generation-panel-step" role="tabpanel" aria-labelledby="generation-tab-step" className="rounded-[22px] border border-[#f3a177]/20 bg-[#0d0e20] p-4 sm:p-6">
           <div className="mb-5 flex items-start gap-3">
             <MessageSquareText className="mt-1 size-5 shrink-0 text-[#f3a177]" aria-hidden="true" />
             <div>
@@ -760,11 +802,16 @@ function GenerationLab({ seed, showTechnical }: { seed: number; showTechnical: b
             </div>
           </div>
           <p className="mt-5 border-t border-white/8 pt-3 text-xs leading-5 text-white/45">Учебна симулация, не истинско генериране. Цветовете показват числа, не цветовете на лисицата. {step > 0 && step < TOTAL_STEPS ? 'Сравняваш две съседни състояния; разликата нарочно е малка.' : ''}</p>
+          <div className="mt-5 flex justify-end">
+            <Button onClick={() => { setPlaying(false); setChapter('words'); }} className="min-h-11 rounded-full bg-[#f3a177] px-5 text-[#181026] hover:bg-[#f3a177]/85">
+              Продължи: как думите насочват<ArrowRight data-icon="inline-end" />
+            </Button>
+          </div>
         </section>
       )}
 
       {chapter === 'detail' && (
-        <>
+        <section id="generation-panel-detail" role="tabpanel" aria-labelledby="generation-tab-detail">
         <p className="mb-4 text-sm text-white/60">{step === 0 ? 'Как ще изчислим първата поправка.' : `Как изчислихме поправка ${step}.`} За да продължиш, върни се в „1. Опитай“.</p>
         <div className="mb-4 grid items-stretch gap-2 lg:grid-cols-[1fr_auto_1fr_auto_1fr]">
           <Panel eyebrow="01 · вход" title="Сегашната скрита скица" technicalName="текущ latent zₜ" showTechnical={showTechnical} description="Числовото състояние преди поправката." values={state.current} selected />
@@ -804,7 +851,12 @@ function GenerationLab({ seed, showTechnical }: { seed: number; showTechnical: b
           </div>
         </div>
         <WeightsExplainer mode="generate" showTechnical={showTechnical} />
-        </>
+        <div className="mt-5 flex justify-end">
+          <a href="#map" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f3a177] px-5 text-sm font-semibold text-[#181026] transition hover:bg-[#f3a177]/85">
+            Завърши: виж цялата карта<ArrowDown className="size-4" aria-hidden="true" />
+          </a>
+        </div>
+        </section>
       )}
     </div>
   );
@@ -1015,7 +1067,7 @@ function TrainingVisualBridge({
   );
 }
 
-function TrainingLab({ seed, showTechnical }: { seed: number; showTechnical: boolean }) {
+function TrainingLab({ seed, showTechnical, onFinish }: { seed: number; showTechnical: boolean; onFinish: () => void }) {
   const [step, setStep] = useState(10);
   const [chapter, setChapter] = useState<'examples' | 'noise' | 'practice'>('examples');
   const practiceTab = useRef<HTMLButtonElement>(null);
@@ -1026,7 +1078,10 @@ function TrainingLab({ seed, showTechnical }: { seed: number; showTechnical: boo
 
   return (
     <div>
-      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" aria-label="Части на упражнението за обучение">
+      <p className="mb-2 text-xs font-semibold text-[#9ee3c8]">
+        Обучение · стъпка {chapter === 'examples' ? 1 : chapter === 'noise' ? 2 : 3} от 3
+      </p>
+      <div className="mb-6 grid grid-cols-3 gap-1 rounded-2xl border border-white/8 bg-[#0d0e20] p-1.5" role="tablist" aria-label="Части на упражнението за обучение">
         {([
           ['examples', '1. Примери'],
           ['noise', '2. Добавяме шум'],
@@ -1037,7 +1092,12 @@ function TrainingLab({ seed, showTechnical }: { seed: number; showTechnical: boo
             ref={key === 'practice' ? practiceTab : undefined}
             type="button"
             onClick={() => setChapter(key)}
-            aria-pressed={chapter === key}
+            id={`training-tab-${key}`}
+            role="tab"
+            aria-selected={chapter === key}
+            aria-controls={`training-panel-${key}`}
+            tabIndex={chapter === key ? 0 : -1}
+            onKeyDown={moveBetweenTabs}
             className={`rounded-xl px-2 py-3 text-xs font-semibold transition sm:text-sm ${
               chapter === key ? 'bg-[#72d7af] text-[#10251d]' : 'text-white/45 hover:bg-white/5 hover:text-white'
             }`}
@@ -1047,15 +1107,20 @@ function TrainingLab({ seed, showTechnical }: { seed: number; showTechnical: boo
         ))}
       </div>
 
-      {chapter === 'examples' && <TrainingDatasetIntro showTechnical={showTechnical} onPractice={() => {
-        setChapter('practice');
-        practiceTab.current?.focus({ preventScroll: true });
-        practiceTab.current?.scrollIntoView({ block: 'center' });
-      }} />}
-      {chapter === 'noise' && <TrainingVisualBridge state={state} showTechnical={showTechnical} onNoiseChange={setStep} />}
+      {chapter === 'examples' && <section id="training-panel-examples" role="tabpanel" aria-labelledby="training-tab-examples"><TrainingDatasetIntro showTechnical={showTechnical} onPractice={() => {
+        setChapter('noise');
+      }} /></section>}
+      {chapter === 'noise' && <section id="training-panel-noise" role="tabpanel" aria-labelledby="training-tab-noise">
+        <TrainingVisualBridge state={state} showTechnical={showTechnical} onNoiseChange={setStep} />
+        <div className="mt-5 flex justify-end">
+          <Button onClick={() => { setChapter('practice'); practiceTab.current?.focus({ preventScroll: true }); }} className="min-h-11 rounded-full bg-[#9ee3c8] px-5 text-[#10251d] hover:bg-[#b5efd8]">
+            Продължи: опит и проверка<ArrowRight data-icon="inline-end" />
+          </Button>
+        </div>
+      </section>}
 
       {chapter === 'practice' && (
-        <>
+        <section id="training-panel-practice" role="tabpanel" aria-labelledby="training-tab-practice">
       <div className="mb-5 grid gap-3 rounded-2xl border border-white/10 bg-[#0d0e20] p-4 lg:grid-cols-[1fr_auto] lg:items-center">
         <div className="flex items-center gap-4">
           <img
@@ -1158,7 +1223,16 @@ function TrainingLab({ seed, showTechnical }: { seed: number; showTechnical: boo
         </div>
       </div>
       <WeightsExplainer mode="train" showTechnical={showTechnical} />
-        </>
+      <div className="mt-5 rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.045] p-4 sm:flex sm:items-center sm:justify-between sm:gap-5">
+        <div>
+          <p className="font-semibold text-white">Обучението е завършено</p>
+          <p className="mt-1 text-sm leading-6 text-white/60">Вече знаеш как AI опитва, сравнява отговора и поправя научените настройки.</p>
+        </div>
+        <button type="button" onClick={onFinish} className="mt-4 inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full bg-[#f3a177] px-5 text-sm font-semibold text-[#181026] transition hover:bg-[#f3a177]/85 sm:mt-0">
+          Следва: генериране<ArrowRight className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+        </section>
       )}
     </div>
   );
@@ -1283,21 +1357,28 @@ function DiffusionLab() {
           <span className="rounded-full border border-[#72d7af]/20 bg-[#72d7af]/[0.06] px-3 py-1.5 text-xs text-[#72d7af]">
             {mode === 'generate' ? 'AI вече е обучен' : 'Обучение = опит, проверка, поправка'}
           </span>
-          <button
-            type="button"
-            onClick={() => setShowTechnical((current) => !current)}
-            aria-pressed={showTechnical}
-            className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/55 transition hover:border-white/20 hover:text-white aria-pressed:border-[#afa3d9]/30 aria-pressed:bg-[#afa3d9]/10 aria-pressed:text-[#c9bdf1]"
-          >
-            {showTechnical ? 'Скрий техническите имена' : 'Покажи техническите имена'}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExplanationDialog label="Какво е шум?" title="Шумът е таблица от случайни числа">
+              <p>Когато покажем тези числа като цветове, те изглеждат като разноцветни зрънца без нарисуван предмет.</p>
+              <p><strong className="text-white">При обучението</strong> ние добавяме известен шум към истинска картинка. Понеже знаем какво сме добавили, можем да проверим дали AI го е познал.</p>
+              <p><strong className="text-white">При генерирането</strong> AI тръгва от шум и използва наученото, за да прави много малки поправки към подредена сцена.</p>
+            </ExplanationDialog>
+            <button
+              type="button"
+              onClick={() => setShowTechnical((current) => !current)}
+              aria-pressed={showTechnical}
+              className="min-h-9 rounded-full border border-white/10 px-3 text-xs text-white/65 transition hover:border-white/20 hover:text-white aria-pressed:border-[#afa3d9]/30 aria-pressed:bg-[#afa3d9]/10 aria-pressed:text-[#c9bdf1]"
+            >
+              {showTechnical ? 'Скрий техническите имена' : 'Покажи техническите имена'}
+            </button>
+          </div>
           {showTechnical && <span className="font-mono text-xs text-white/50">начален вариант #{seed}</span>}
         </div>
 
       {mode === 'generate' ? (
         <GenerationLab seed={seed} showTechnical={showTechnical} />
       ) : (
-        <TrainingLab seed={seed} showTechnical={showTechnical} />
+        <TrainingLab seed={seed} showTechnical={showTechnical} onFinish={() => changeMode('generate')} />
       )}
 
       <details className="mt-6 rounded-2xl border border-white/8 bg-white/[0.025] px-4 py-3 text-sm text-white/55">
@@ -1326,7 +1407,17 @@ export default function Home() {
           <a className="transition hover:text-foreground" href="#map">Картата</a>
           <a className="transition hover:text-foreground" href="#why-noise">Какво е шум и защо?</a>
         </nav>
-        <span className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-white/45">
+        <details className="group relative sm:hidden">
+          <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 rounded-full border border-white/12 px-3 text-xs font-semibold text-white/75 marker:content-none">
+            Раздели<ChevronDown className="size-4 transition group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <nav className="absolute right-0 top-12 z-40 grid min-w-56 gap-1 rounded-2xl border border-white/12 bg-[#15162d] p-2 text-sm shadow-2xl" aria-label="Мобилна навигация">
+            <a className="rounded-xl px-3 py-3 text-white/75 hover:bg-white/8 hover:text-white" href="#lab">Упражнението</a>
+            <a className="rounded-xl px-3 py-3 text-white/75 hover:bg-white/8 hover:text-white" href="#map">Цялата карта</a>
+            <a className="rounded-xl px-3 py-3 text-white/75 hover:bg-white/8 hover:text-white" href="#why-noise">Какво е шум и защо?</a>
+          </nav>
+        </details>
+        <span className="hidden rounded-full border border-white/10 px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-white/55 md:inline">
           Experiment 01
         </span>
       </header>
@@ -1345,12 +1436,19 @@ export default function Home() {
             <p className="mt-4 text-pretty text-base leading-7 text-white/70 sm:text-lg">
               Виж как AI се учи от картинки с описания и как после превръща случаен шум в нова сцена — не наведнъж, а с много малки поправки.
             </p>
+            <ol className="mt-5 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/65" aria-label="Маршрут на урока">
+              <li className="rounded-full border border-[#72d7af]/25 bg-[#72d7af]/[0.06] px-3 py-2 text-[#9ee3c8]">1. Обучение</li>
+              <li aria-hidden="true" className="text-white/30">→</li>
+              <li className="rounded-full border border-[#f3a177]/25 bg-[#f3a177]/[0.05] px-3 py-2 text-[#f3a177]">2. Генериране</li>
+              <li aria-hidden="true" className="text-white/30">→</li>
+              <li className="rounded-full border border-white/10 px-3 py-2">3. Обобщение</li>
+            </ol>
           </div>
             <a
               href="#lab"
               className="inline-flex h-11 shrink-0 items-center gap-2 self-start rounded-full bg-[#f08b5d] px-5 text-sm font-semibold text-[#181026] transition hover:bg-[#f6a07b] lg:self-auto"
             >
-              Започни упражнението
+              Започни с обучението
               <ArrowDown className="size-4" aria-hidden="true" />
             </a>
         </div>

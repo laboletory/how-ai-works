@@ -178,9 +178,9 @@ export function TrainingPairExplorer({ caption, showTechnical, onPractice }: { c
         </ol>
         <p className="mt-4 text-sm leading-6 text-white/65">После — още примери и различен шум. Програмата обикновено зарежда малки групи примери, а не цялата библиотека наведнъж. Много такива опити постепенно променят тежестите.</p>
         <button type="button" onClick={onPractice} className={`mt-4 inline-flex items-center gap-2 rounded-full bg-[#9ee3c8] px-5 py-3 text-sm font-semibold text-[#10251d] hover:bg-[#b5efd8] ${FOCUS}`}>
-          Проследи опита с лисицата<ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+          Продължи: добавяме шум<ArrowRight className="size-4 shrink-0" aria-hidden="true" />
         </button>
-        <p className="mt-2 text-xs leading-5 text-white/50">Отваря „3. Опит и проверка“ — учебна симулация, не обучение на истински AI в браузъра.</p>
+        <p className="mt-2 text-xs leading-5 text-white/50">Следва стъпка 2 от 3: ще видиш защо нарочно нарушаваме подредбата на картинката.</p>
         <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-white/65"><LockKeyhole className="mt-0.5 size-4 shrink-0 text-[#f3a177]" aria-hidden="true" />При генерирането тези тежести вече са научени. Използваме ги с нов текст и случаен шум; не подаваме тази тренировъчна картинка.</p>
       </div>
 

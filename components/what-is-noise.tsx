@@ -82,10 +82,41 @@ export function WhatIsNoise() {
           „Добавяме шум“ означава: случайно увеличаваме или намаляваме стойностите на цветовете.
           Някои точки стават по-светли, други по-тъмни или с друг цвят. Не размазваме картинката — нарушаваме подредбата ѝ.
         </p>
+        <div className="mx-auto mt-6 grid max-w-3xl gap-4 md:grid-cols-[0.82fr_1.18fr]">
+          <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-4" aria-labelledby="changing-values-title">
+            <h3 id="changing-values-title" className="text-base font-semibold">Какво значи „увеличаваме“?</h3>
+            <p className="mt-2 text-xs leading-5 text-white/55">Представи си само число за светлост: 0 е черно, а 255 — бяло.</p>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              {[
+                ['120', 'начало', 'rgb(120 120 120)'],
+                ['155', '+35 · по-светло', 'rgb(155 155 155)'],
+                ['85', '−35 · по-тъмно', 'rgb(85 85 85)'],
+              ].map(([value, label, color]) => (
+                <div key={value}>
+                  <span className="grid aspect-square place-items-center rounded-xl border border-white/10 font-mono text-sm text-white" style={{ backgroundColor: color }}>{value}</span>
+                  <span className="mt-2 block text-[10px] leading-4 text-white/45">{label}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-white/55">Цветната точка има няколко числа. Ако те се променят различно, може да се промени и цветът ѝ.</p>
+          </section>
+
+          <section className="rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.045] p-4" aria-labelledby="why-break-image-title">
+            <p className="font-mono text-[10px] uppercase tracking-[0.13em] text-[#f3a177]">Причината</p>
+            <h3 id="why-break-image-title" className="mt-2 text-lg font-semibold">Защо нарочно разваляме подредбата?</h3>
+            <p className="mt-2 text-sm leading-6 text-white/65">За да създадем задача с верен отговор, който можем да проверим — като контролна работа, която сами сме съставили.</p>
+            <ol className="mt-4 space-y-3 text-sm leading-5 text-white/60">
+              <li className="flex gap-3"><span className="font-mono text-[#f3a177]">1</span><span><strong className="text-white/85">Ние добавяме</strong> случайните промени и запазваме точно кои са.</span></li>
+              <li className="flex gap-3"><span className="font-mono text-[#f3a177]">2</span><span><strong className="text-white/85">AI вижда</strong> нарушената картинка и опитва да познае промените.</span></li>
+              <li className="flex gap-3"><span className="font-mono text-[#f3a177]">3</span><span><strong className="text-white/85">Сравняваме</strong> опита му с нашия запазен отговор и го поправяме.</span></li>
+            </ol>
+            <p className="mt-4 border-t border-[#f3a177]/15 pt-4 text-sm font-medium leading-6 text-white/80">След много такива упражнения AI се научава да предлага коя малка промяна вероятно е шум. При генериране тръгва от чист шум, премахва по малко от него и повтаря — а думите насочват каква подредба да търси.</p>
+          </section>
+        </div>
         <details className="mx-auto mt-4 max-w-3xl border-t border-white/8 pt-4 text-sm text-white/55">
           <summary className="cursor-pointer font-semibold text-white/75">А какво става с числата?</summary>
           <p className="mt-3 leading-6">Например една цветова стойност е 120. Добавяме случайна промяна −35 и получаваме 85. Това се случва на много места, с различни промени.</p>
-          <p className="mt-2 leading-6">Тук променяме направо цветовете, за да видиш идеята. В упражнението с решетките шумът се добавя към числата на скритата скица. Средната картинка показва тези положителни и отрицателни промени като цветове около сивото; стойностите за екрана са ограничени между 0 и 255.</p>
+          <p className="mt-2 leading-6">Тук променяме направо цветовете, за да видиш идеята. В много съвременни генератори шумът се добавя към числата на скритата скица, а не директно към видимите пиксели. Средната картинка показва положителните и отрицателните промени като цветове около сивото; стойностите за екрана са ограничени между 0 и 255.</p>
         </details>
       </div>
     </div>
