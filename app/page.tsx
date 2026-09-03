@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { TrainingPairExplorer } from '@/components/training-pair-explorer';
 import { LearningCycleIllustrations } from '@/components/learning-cycle-illustrations';
 import { WhatIsNoise } from '@/components/what-is-noise';
+import { TrainingExampleCards } from '@/components/training-example-cards';
 
 const TOTAL_STEPS = 20;
 const GRID_SIZE = 12;
@@ -843,29 +844,7 @@ function TrainingDatasetIntro({ showTechnical, onPractice }: { showTechnical: bo
           )}
         </div>
 
-        <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e20]">
-          <img
-            src="/illustrations/fox-learning-triptych-gouache.webp"
-            alt="Лисицата е нашият рисуван водач: показва примери с описания, сравнява ги и решава задача със шум. Компютърът всъщност работи с числа."
-            className="aspect-[2/1] w-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-          <figcaption className="grid grid-cols-3 border-t border-white/8 text-center">
-            <div className="px-2 py-3 sm:px-4">
-              <p className="font-mono text-[9px] text-[#72d7af]">01</p>
-              <p className="mt-1 text-xs font-semibold">Картинка + описание</p>
-            </div>
-            <div className="border-x border-white/8 px-2 py-3 sm:px-4">
-              <p className="font-mono text-[9px] text-[#72d7af]">02</p>
-              <p className="mt-1 text-xs font-semibold">Числа за AI</p>
-            </div>
-            <div className="px-2 py-3 sm:px-4">
-              <p className="font-mono text-[9px] text-[#72d7af]">03</p>
-              <p className="mt-1 text-xs font-semibold">Опит → проверка → поправка</p>
-            </div>
-          </figcaption>
-        </figure>
+        <TrainingExampleCards />
       </div>
 
       <TrainingPairExplorer caption={PROMPT} showTechnical={showTechnical} onPractice={onPractice} />
@@ -1215,11 +1194,6 @@ function DiffusionLab() {
                   : 'border-white/10 bg-white/[0.025] hover:border-[#72d7af]/25 hover:bg-[#72d7af]/[0.04]'
               }`}
             >
-            <span
-              className={`absolute inset-x-0 top-0 h-0.5 transition ${
-                mode === 'train' ? 'bg-[#72d7af]' : 'bg-transparent'
-              }`}
-            />
             <span className="flex items-center gap-3 sm:gap-4">
               <span
                 className={`grid size-9 shrink-0 place-items-center rounded-xl transition sm:size-11 sm:rounded-2xl ${
@@ -1266,11 +1240,6 @@ function DiffusionLab() {
                   : 'border-white/10 bg-white/[0.025] hover:border-[#f3a177]/25 hover:bg-[#f3a177]/[0.045]'
               }`}
             >
-            <span
-              className={`absolute inset-x-0 top-0 h-0.5 transition ${
-                mode === 'generate' ? 'bg-[#f3a177]' : 'bg-transparent'
-              }`}
-            />
             <span className="flex items-center gap-3 sm:gap-4">
               <span
                 className={`grid size-9 shrink-0 place-items-center rounded-xl transition sm:size-11 sm:rounded-2xl ${
