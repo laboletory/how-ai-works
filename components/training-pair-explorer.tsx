@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import NextImage from 'next/image';
-import { ArrowRight, LockKeyhole } from 'lucide-react';
+import { ArrowRight, FileImage, FileText, Link2, LockKeyhole } from 'lucide-react';
 
 const SIDE = 6;
 const CHANNELS = ['Червено', 'Зелено', 'Синьо'];
@@ -17,7 +17,7 @@ const TEXT_ROWS = [
 ];
 const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
-export function TrainingPairExplorer({ caption, showTechnical }: { caption: string; showTechnical: boolean }) {
+export function TrainingPairExplorer({ caption, showTechnical, onPractice }: { caption: string; showTechnical: boolean; onPractice: () => void }) {
   const [pixels, setPixels] = useState<number[][]>([]);
   const [imageError, setImageError] = useState(false);
   const [cell, setCell] = useState(9);
@@ -53,11 +53,39 @@ export function TrainingPairExplorer({ caption, showTechnical }: { caption: stri
   const position = `ред ${Math.floor(cell / SIDE) + 1}, колона ${cell % SIDE + 1}`;
 
   return (
-    <section aria-labelledby="pair-numbers-heading" className="border-t border-white/8 bg-[#0d0e20]/70 p-4 sm:p-6">
+    <section aria-labelledby="pair-record-heading" className="border-t border-white/8 bg-[#0d0e20]/70 p-4 sm:p-6">
+      <div className="mb-8">
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">Проследяваме един пример · № 001</p>
+        <h4 id="pair-record-heading" className="mt-2 text-xl font-semibold">Къде е написано какво има на картинката?</h4>
+        <div className="mt-5 grid items-stretch gap-3 md:grid-cols-[1fr_auto_1fr]">
+          <figure className="flex min-w-0 items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
+            <NextImage src="/fox-moon.webp" alt="Учебният файл: лисица под голяма луна, без надпис върху изображението" width={96} height={96} unoptimized className="size-20 shrink-0 rounded-xl object-cover sm:size-24" />
+            <figcaption className="min-w-0">
+              <p className="flex items-center gap-2 text-xs text-[#9ee3c8]"><FileImage className="size-4 shrink-0" aria-hidden="true" />Файл с картинка</p>
+              <p className="mt-2 break-all font-mono text-sm text-white">fox-moon.webp</p>
+              <p className="mt-2 text-xs leading-5 text-white/60">Името е адрес за намиране на файла, не обяснение за AI.</p>
+            </figcaption>
+          </figure>
+          <div className="flex items-center justify-center gap-2 text-xs text-[#9ee3c8] md:flex-col" aria-label="Файлът и описанието са свързани като пример 001">
+            <Link2 className="size-5" aria-hidden="true" /><span>двойка 001</span>
+          </div>
+          <div className="rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.04] p-4">
+            <p className="flex items-center gap-2 text-xs text-[#f3a177]"><FileText className="size-4" aria-hidden="true" />Отделен текстов запис</p>
+            <blockquote className="mt-3 text-base font-semibold leading-6">„{caption}“</blockquote>
+            <p className="mt-3 text-xs leading-5 text-white/60">Текстът придружава файла. Не е нужно да е написан върху картинката.</p>
+          </div>
+        </div>
+        <details className="mt-3 text-xs leading-5 text-white/65">
+          <summary className={`cursor-pointer rounded py-2 ${FOCUS}`}>А ако файлът се казва 000123.jpg? Кой пише описанията?</summary>
+          <p className="mt-2">Името може да е просто номер. В този пример моделът получава съдържанието на картинката и свързаното описание, а не името като подсказка. При преименуване програмата трябва да обнови и връзката към файла.</p>
+          <p className="mt-2">Според набора от данни описанията могат да са написани от хора, взети от придружаващ текст в интернет или създадени от друг модел. Те не винаги са точни — затова качеството на примерите е важно.</p>
+          <a href="https://huggingface.co/docs/datasets/image_dataset#image-captioning" target="_blank" rel="noreferrer" className={`mt-2 inline-block text-[#9ee3c8] underline underline-offset-4 ${FOCUS}`}>Как се свързват файл и описание в реален набор</a>
+        </details>
+      </div>
       <div className="mb-6 max-w-2xl">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">Приближаваме двойка № 001</p>
-        <h4 id="pair-numbers-heading" className="mt-2 text-xl font-semibold">Една двойка. Два вида числа.</h4>
-        <p className="mt-2 text-sm leading-6 text-white/60">Картинката и описанието остават свързани като един пример. За изчисленията всяка част получава свое числово представяне.</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">Същата двойка · вече за изчисления</p>
+        <h4 id="pair-numbers-heading" className="mt-2 text-xl font-semibold">Какво „вижда“ компютърът? Числа.</h4>
+        <p className="mt-2 text-sm leading-6 text-white/60">Не гледа екран като нас. Програмата отваря файла и прочита цветовете на пикселите — малките точки на картинката. Текстов модел превръща отделното описание в други числа.</p>
       </div>
 
       <div className="grid items-start gap-5 xl:grid-cols-2">
@@ -131,20 +159,34 @@ export function TrainingPairExplorer({ caption, showTechnical }: { caption: stri
         </article>
       </div>
 
-      <div className="mt-5 grid items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.025] p-4 sm:grid-cols-[1fr_auto_1fr]">
-        <div><p className="text-sm font-semibold text-[#9ee3c8]">Това са входовете на един пример</p><p className="mt-2 text-xs leading-5 text-white/65">Към изображението добавяме шум. Описанието насочва отговора. Двата набора от числа се използват заедно — не се събират в една обща таблица.</p></div>
-        <ArrowRight className="hidden size-5 text-white/35 sm:block" aria-hidden="true" />
-        <div><p className="flex items-center gap-2 text-sm font-semibold text-[#f3a177]"><LockKeyhole className="size-4 shrink-0" aria-hidden="true" />Тежестите са друго</p><p className="mt-2 text-xs leading-5 text-white/65">При обучението грешката коригира научените тежести. При генерирането зареждаме тези тежести и подаваме нов текст и случаен шум, не тренировъчната картинка.</p></div>
+      <div className="mt-8 border-t border-white/10 pt-6">
+        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">Същият пример · задача с проверим отговор</p>
+        <h4 className="mt-2 text-xl font-semibold">„Упражнява се“ = опит, проверка, поправка.</h4>
+        <ol aria-label="Как протича един учебен опит" className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {[
+            ['training-noise', 'Ние добавяме шум', 'Програмата зашумява картинката с лисицата и пази точния добавен шум.'],
+            ['training-predict', 'AI дава отговор', 'Получава зашумените числа, описанието и нивото на шум. Предвижда какъв шум е добавен.'],
+            ['training-example', 'Програмата проверява', 'Сравнява предвидения шум с действително добавения. Разликата показва грешката.'],
+            ['training-correct', 'Поправя настройките', 'Според грешката програмата леко променя вътрешните настройки на AI — тежестите.'],
+          ].map(([asset, title, description], index) => (
+            <li key={asset} className="rounded-2xl bg-white/[0.025] p-4">
+              <NextImage src={`/illustrations/fox-${asset}-gouache.webp`} alt="" width={64} height={64} unoptimized className="mb-3 size-16 rounded-full" />
+              <p className="text-sm font-semibold"><span className="mr-2 font-mono text-[#9ee3c8]">{index + 1}.</span>{title}</p>
+              <p className="mt-2 text-xs leading-5 text-white/65">{description}</p>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-4 text-sm leading-6 text-white/65">После — още примери и различен шум. Програмата обикновено зарежда малки групи примери, а не цялата библиотека наведнъж. Много такива опити постепенно променят тежестите.</p>
+        <button type="button" onClick={onPractice} className={`mt-4 inline-flex items-center gap-2 rounded-full bg-[#9ee3c8] px-5 py-3 text-sm font-semibold text-[#10251d] hover:bg-[#b5efd8] ${FOCUS}`}>
+          Проследи опита с лисицата<ArrowRight className="size-4 shrink-0" aria-hidden="true" />
+        </button>
+        <p className="mt-2 text-xs leading-5 text-white/50">Отваря „3. Опит и проверка“ — учебна симулация, не обучение на истински AI в браузъра.</p>
+        <p className="mt-5 flex items-start gap-2 text-xs leading-5 text-white/65"><LockKeyhole className="mt-0.5 size-4 shrink-0 text-[#f3a177]" aria-hidden="true" />При генерирането тези тежести вече са научени. Използваме ги с нов текст и случаен шум; не подаваме тази тренировъчна картинка.</p>
       </div>
 
       <details className="mt-4 text-xs leading-5 text-white/65">
-        <summary className={`cursor-pointer rounded py-2 font-medium text-white/80 ${FOCUS}`}>А как се записва самата двойка?</summary>
+        <summary className={`cursor-pointer rounded py-2 font-medium text-white/80 ${FOCUS}`}>Запазват ли се тези числа в тежестите?</summary>
         <p className="mt-2">Например като файл с изображение и свързан с него текстов запис. Числовите представяния могат да се изчисляват при зареждане или да се запазят предварително. Двойката не става един ред в тежестите на модела.</p>
-        <dl className="mt-3 grid gap-2 rounded-xl bg-black/20 p-3 sm:grid-cols-[auto_1fr]">
-          <dt className="text-white/45">Пример</dt><dd>001</dd>
-          <dt className="text-white/45">Файл</dt><dd className="font-mono">fox-moon.webp</dd>
-          <dt className="text-white/45">Описание</dt><dd>„{caption}“</dd>
-        </dl>
       </details>
       {showTechnical && (
         <div className="mt-4 space-y-2 rounded-xl border border-[#afa3d9]/20 p-4 text-xs leading-5 text-[#c9bdf1]">
