@@ -21,6 +21,8 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { TrainingPairExplorer } from '@/components/training-pair-explorer';
+import { LearningCycleIllustrations } from '@/components/learning-cycle-illustrations';
 
 const TOTAL_STEPS = 20;
 const GRID_SIZE = 12;
@@ -851,9 +853,11 @@ function TrainingDatasetIntro({ showTechnical }: { showTechnical: boolean }) {
 
         <figure className="overflow-hidden rounded-2xl border border-white/10 bg-[#0d0e20]">
           <img
-            src="/fox-learning-triptych.webp"
+            src="/illustrations/fox-learning-triptych-gouache.webp"
             alt="Три илюстрации: лисица разглежда библиотека от картинки, намира връзки между тях и се упражнява да разпознава шум"
             className="aspect-[2/1] w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
           <figcaption className="grid grid-cols-3 border-t border-white/8 text-center">
             <div className="px-2 py-3 sm:px-4">
@@ -872,48 +876,7 @@ function TrainingDatasetIntro({ showTechnical }: { showTechnical: boolean }) {
         </figure>
       </div>
 
-      <div className="border-t border-white/8 bg-[#0d0e20]/70 p-4 sm:p-5">
-        <div className="mb-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/35">Нека приближим един пример</p>
-          <p className="mt-2 text-sm text-white/55">Всяка двойка дава две свързани части от една и съща информация.</p>
-        </div>
-
-        <div className="grid items-stretch gap-2 lg:grid-cols-[0.8fr_auto_1fr_auto_1.15fr]">
-          <figure className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-            <img src="/fox-moon.webp" alt="Лисица под голяма луна" className="aspect-[16/10] w-full object-cover" />
-            <figcaption className="px-4 py-3">
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">1 · картинка</p>
-              <p className="mt-1 text-xs text-white/50">Визуалният пример</p>
-            </figcaption>
-          </figure>
-
-          <div className="flex items-center justify-center py-1 text-white/25 lg:flex-col lg:px-1 lg:py-0">
-            <Plus className="size-4" aria-hidden="true" />
-            <span className="ml-2 font-mono text-[9px] uppercase tracking-[0.12em] lg:ml-0 lg:mt-2 lg:[writing-mode:vertical-rl]">вървят заедно</span>
-          </div>
-
-          <div className="rounded-2xl border border-[#f3a177]/20 bg-[#f3a177]/[0.055] p-4">
-            <div className="flex items-center gap-2 text-[#f3a177]">
-              <MessageSquareText className="size-4" aria-hidden="true" />
-              <p className="font-mono text-[10px] uppercase tracking-[0.14em]">2 · описание</p>
-            </div>
-            <blockquote className="mt-4 text-base font-semibold leading-6 text-white">„{PROMPT}“</blockquote>
-            <p className="mt-3 text-xs leading-5 text-white/50">Това е текстът, който придружава картинката в учебния пример.</p>
-          </div>
-
-          <FlowArrow label="сравнява много двойки" />
-
-          <div className="rounded-2xl border border-[#72d7af]/18 bg-[#72d7af]/[0.05] p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#72d7af]">3 · открива повтарящи се връзки</p>
-            <div className="mt-4 space-y-2 text-xs">
-              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„лисица“</span><span className="text-white/30"> → </span><span className="text-white/60">уши, козина, силует</span></div>
-              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„луна“</span><span className="text-white/30"> → </span><span className="text-white/60">кръг, светлина, небе</span></div>
-              <div className="rounded-lg bg-white/[0.035] px-3 py-2"><span className="text-[#f3a177]">„под“</span><span className="text-white/30"> → </span><span className="text-white/60">връзка между позиции</span></div>
-            </div>
-            <p className="mt-3 text-xs leading-5 text-white/50">Това са закономерности от много примери, не готови парчета за копиране.</p>
-          </div>
-        </div>
-      </div>
+      <TrainingPairExplorer caption={PROMPT} showTechnical={showTechnical} />
 
       <div className="border-t border-[#f3a177]/15 bg-[#f3a177]/[0.04] px-5 py-4 text-xs leading-5 text-white/55">
         <strong className="text-[#f3a177]">Важно:</strong>{' '}
@@ -1531,19 +1494,7 @@ export default function Home() {
                 <RefreshCw className="size-5 text-[#72d7af]" aria-hidden="true" />
               </div>
               <h3 className="mt-8 text-2xl font-semibold">Моделът се учи да предвижда</h3>
-              <figure className="mt-6 rounded-2xl border border-[#72d7af]/12 bg-[#72d7af]/[0.035] p-3 sm:p-4">
-                <img
-                  src="/fox-training-cycle.png"
-                  alt="Четири стъпки на обучението: лисицата разглежда пример, добавя шум, опитва да го познае и коригира научените връзки"
-                  className="w-full"
-                />
-                <figcaption className="mt-3 grid grid-cols-4 gap-1 text-center text-[9px] leading-3 text-white/45 sm:text-[10px]">
-                  <span><strong className="block font-mono text-[#72d7af]">01</strong>пример</span>
-                  <span><strong className="block font-mono text-[#72d7af]">02</strong>известен шум</span>
-                  <span><strong className="block font-mono text-[#72d7af]">03</strong>AI познава</span>
-                  <span><strong className="block font-mono text-[#72d7af]">04</strong>корекция</span>
-                </figcaption>
-              </figure>
+              <LearningCycleIllustrations mode="train" />
               <p className="mt-5 text-sm leading-6 text-white/55">
                 Сравняваме опита с точния отговор и леко поправяме научените връзки. После упражнението започва отново с друг пример.
               </p>
@@ -1555,35 +1506,7 @@ export default function Home() {
                 <LockKeyhole className="size-5 text-[#f3a177]" aria-hidden="true" />
               </div>
               <h3 className="mt-8 text-2xl font-semibold">Наученият модел вече не се променя</h3>
-              <figure className="mt-6 rounded-2xl border border-[#f3a177]/12 bg-[#f3a177]/[0.035] p-3 sm:p-4">
-                <svg
-                  viewBox="0 0 2168 725"
-                  role="img"
-                  aria-label="Четири стъпки на генерирането: случаен шум, промптът насочва, картината се избистря на малки стъпки и се появява готовият образ"
-                  className="w-full"
-                >
-                  <defs>
-                    <clipPath id="generation-cycle-circles">
-                      <ellipse cx="317" cy="342" rx="228" ry="234" />
-                      <ellipse cx="833" cy="342" rx="228" ry="234" />
-                      <ellipse cx="1351" cy="342" rx="228" ry="234" />
-                      <ellipse cx="1859" cy="342" rx="228" ry="234" />
-                    </clipPath>
-                  </defs>
-                  <image
-                    href="/fox-generation-cycle.png"
-                    width="2168"
-                    height="725"
-                    clipPath="url(#generation-cycle-circles)"
-                  />
-                </svg>
-                <figcaption className="mt-3 grid grid-cols-4 gap-1 text-center text-[9px] leading-3 text-white/45 sm:text-[10px]">
-                  <span><strong className="block font-mono text-[#f3a177]">01</strong>случаен шум</span>
-                  <span><strong className="block font-mono text-[#f3a177]">02</strong>промптът насочва</span>
-                  <span><strong className="block font-mono text-[#f3a177]">03</strong>малки стъпки</span>
-                  <span><strong className="block font-mono text-[#f3a177]">04</strong>готов образ</span>
-                </figcaption>
-              </figure>
+              <LearningCycleIllustrations mode="generate" />
               <p className="mt-5 text-sm leading-6 text-white/55">
                 Моделът използва наученото, за да намалява шума. Думите насочват всяка следваща промяна, но не посочват готови части за поставяне.
               </p>
